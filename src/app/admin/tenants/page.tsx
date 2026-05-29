@@ -1,7 +1,9 @@
 import { getAllTenants } from '@/application/queries/admin.queries'
 
 export default async function AdminTenantsPage() {
-  const tenants = await getAllTenants()
+  const allTenants = await getAllTenants()
+  // Filter out the platform's own "house account" — only show reseller/client tenants
+  const tenants = allTenants.filter((t: any) => t.owner?.role !== 'SUPER_ADMIN')
 
   return (
     <div className="space-y-6">

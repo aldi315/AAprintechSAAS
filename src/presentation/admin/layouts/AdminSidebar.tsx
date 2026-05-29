@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Palette, Image as ImageIcon,
-  CreditCard, Activity, Settings, ChevronLeft
+  CreditCard, Activity, Settings, ChevronLeft, Heart, Users
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -22,7 +22,9 @@ const menuGroups = [
     label: 'Management',
     items: [
       { href: '/admin/tenants', label: 'Tenants', icon: Building2 },
+      { href: '/admin/weddings', label: 'Undangan', icon: Heart },
       { href: '/admin/templates', label: 'Templates', icon: Palette },
+      { href: '/admin/templates/categories', label: 'Categories', icon: Palette },
       { href: '/admin/media', label: 'Media', icon: ImageIcon },
     ]
   },
@@ -41,6 +43,7 @@ const menuGroups = [
   {
     label: 'System',
     items: [
+      { href: '/admin/users', label: 'Pengguna', icon: Users },
       { href: '/admin/settings', label: 'Settings', icon: Settings },
     ]
   }
@@ -51,9 +54,8 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full z-30 bg-[#0F172A] text-slate-400 transition-all duration-300 flex flex-col ${
-        collapsed ? 'w-[68px]' : 'w-[260px]'
-      } max-lg:hidden`}
+      className={`fixed left-0 top-0 h-full z-30 bg-[#0F172A] text-slate-400 transition-all duration-300 flex flex-col ${collapsed ? 'w-[68px]' : 'w-[260px]'
+        } max-lg:hidden`}
     >
       {/* Brand */}
       <div className="h-16 flex items-center gap-3 px-4 border-b border-slate-800/60 shrink-0">
@@ -84,11 +86,10 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-indigo-500/15 text-indigo-400'
-                        : 'hover:bg-slate-800/80 hover:text-slate-200'
-                    }`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                      ? 'bg-indigo-500/15 text-indigo-400'
+                      : 'hover:bg-slate-800/80 hover:text-slate-200'
+                      }`}
                     title={collapsed ? item.label : undefined}
                   >
                     <item.icon className="w-5 h-5 shrink-0" />

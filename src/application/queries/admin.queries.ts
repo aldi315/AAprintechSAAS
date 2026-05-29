@@ -3,6 +3,8 @@
  * Mengambil data global (cross-tenant) untuk keperluan SUPER_ADMIN.
  */
 import { prisma } from '@/lib/prisma'
+import { readdir, stat, mkdir } from 'fs/promises'
+import path from 'path'
 
 export interface AdminSystemStats {
   tenantCount: number
@@ -36,7 +38,7 @@ export async function getAllTenants() {
   return (prisma as any).tenant.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      owner: { select: { email: true, name: true } },
+      owner: { select: { email: true, name: true, role: true } },
       _count: {
         select: { weddings: true, media: true }
       }
@@ -56,7 +58,21 @@ export async function getAllPayments() {
 
 export async function getAllTemplates() {
   return (prisma as any).template.findMany({
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    include: {
+      category: true
+    }
+  })
+}
+
+export async function getAllCategories() {
+  return (prisma as any).templateCategory.findMany({
+    orderBy: { name: 'asc' },
+    include: {
+      _count: {
+        select: { templates: true }
+      }
+    }
   })
 }
 
@@ -78,4 +94,93 @@ export async function getGlobalActivityLogs() {
     },
     take: 100
   })
+}
+
+export async function getAllWeddings() {
+  return (prisma as any).wedding.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      tenant: { select: { businessName: true } },
+      template: { select: { name: true } },
+      _count: {
+        select: { guests: true, rsvps: true }
+      }
+    }
+  })
+}
+
+export async function getWeddingDetails(id: string) {
+  return (prisma as any).wedding.findUnique({
+    where: { id },
+    include: {
+      tenant: { select: { businessName: true } },
+      template: { select: { name: true } }
+    }
+  })
+}
+
+export async function getWeddingGuests(weddingId: string) {
+  return (prisma as any).invitationGuest.findMany({
+    where: { weddingId },
+    orderBy: { createdAt: 'desc' }
+  })
+}
+
+export async function getWeddingRSVPs(weddingId: string) {
+  return (prisma as any).rSVP.findMany({
+    where: { weddingId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      guest: { select: { guestName: true, guestCode: true } }
+    }
+  })
+}
+
+export async function getAllUsers() {
+  return (prisma as any).user.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      _count: {
+        select: { ownedTenants: true }
+      }
+    }
+  })
+}
+
+export async function getLocalUploadsAsMedia() {
+  try {
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+    try { await mkdir(uploadDir, { recursive: true }) } catch (e) {}
+
+    const files = await readdir(uploadDir)
+    
+    const localMedia = await Promise.all(
+      files.map(async (filename) => {
+        const filepath = path.join(uploadDir, filename)
+        const fileStat = await stat(filepath)
+        
+        let ext = path.extname(filename).toLowerCase()
+        let fileType = 'application/octet-stream'
+        if (['.jpg', '.jpeg'].includes(ext)) fileType = 'image/jpeg'
+        if (ext === '.png') fileType = 'image/png'
+        if (ext === '.webp') fileType = 'image/webp'
+        
+        return {
+          id: `local-${filename}`,
+          tenantId: 'system',
+          weddingId: null,
+          provider: 'local',
+          fileUrl: `/uploads/${filename}`,
+          fileType: fileType,
+          size: fileStat.size,
+          createdAt: fileStat.mtime,
+          tenant: { businessName: 'System (Local)' }
+        }
+      })
+    )
+    return localMedia
+  } catch (error) {
+    console.error('Error reading local uploads:', error)
+    return []
+  }
 }

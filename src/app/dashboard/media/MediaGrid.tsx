@@ -1,12 +1,12 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useTransition, useState } from 'react'
 import Image from 'next/image'
 import { deleteMediaAction } from './_actions/media.actions'
 import { Copy, Trash2, Check } from 'lucide-react'
-import { useState } from 'react'
 import { EmptyState } from '@/presentation/dashboard/components/ui/EmptyState'
 import { Image as ImageIcon } from 'lucide-react'
+import { useAlert } from '@/presentation/components/ui/AlertProvider'
 
 interface MediaItem {
   id: string
@@ -18,12 +18,15 @@ interface MediaItem {
 }
 
 interface Props {
-  media: MediaItem[]
+  initialMedia: MediaItem[]
 }
 
-export function MediaGrid({ media }: Props) {
+export function MediaGrid({ initialMedia }: Props) {
+  const { showAlert } = useAlert()
+  const [media, setMedia] = useState(initialMedia)
   const [isPending, startTransition] = useTransition()
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   
   if (media.length === 0) {
     return (
@@ -44,11 +47,21 @@ export function MediaGrid({ media }: Props) {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm('Yakin ingin menghapus media ini?')) {
-      startTransition(async () => {
-        await deleteMediaAction(id)
-      })
-    }
+    showAlert(
+      'Konfirmasi Hapus',
+      'Yakin ingin menghapus media ini?',
+      'confirm',
+      async () => {
+        setDeletingId(id)
+        const res = await deleteMediaAction(id)
+        if (res.success) {
+          setMedia(prev => prev.filter(m => m.id !== id))
+        } else {
+          showAlert('Gagal', res.error || 'Gagal menghapus media', 'error')
+        }
+        setDeletingId(null)
+      }
+    )
   }
 
   return (

@@ -155,16 +155,28 @@ model WeddingEvent {
   @@index([weddingId])
 }
 
+model TemplateCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  
+  templates Template[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Template {
   id           String  @id @default(cuid())
   name         String
-  category     String
+  categoryId   String
   previewImage String?
   themeConfig  Json    @default("{}") // Konfigurasi warna, font, layout
   premium      Boolean @default(false)
   active       Boolean @default(true)
 
-  weddings Wedding[]
+  category     TemplateCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  weddings     Wedding[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

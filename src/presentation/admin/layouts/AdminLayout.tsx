@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { AdminSidebar } from './AdminSidebar'
 import { AdminTopbar } from './AdminTopbar'
+import { usePathname } from 'next/navigation'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -12,6 +13,12 @@ interface AdminLayoutProps {
 export function AdminLayout({ children, userEmail, pageTitle }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const pathname = usePathname()
+
+  // Full page for editor
+  if (pathname.includes('/design')) {
+    return <>{children}</>
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

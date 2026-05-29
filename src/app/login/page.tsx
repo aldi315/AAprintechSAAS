@@ -33,8 +33,13 @@ export default function LoginPage() {
       return
     }
 
-    router.push(callbackUrl)
-    router.refresh()
+    // Biarkan middleware yang mengurus redirect berdasarkan role (ke /admin atau /dashboard)
+    // dengan cara memuat ulang halaman, sehingga request tertangkap middleware di server.
+    if (!searchParams.get('callbackUrl') || searchParams.get('callbackUrl') === '/dashboard') {
+      window.location.href = '/login'
+    } else {
+      window.location.href = callbackUrl
+    }
   }
 
   return (

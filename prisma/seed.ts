@@ -12,8 +12,15 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
 
+// Load env file for database credentials when run directly
+try {
+  process.loadEnvFile()
+} catch (e) {
+  // Ignored if .env file is not present
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL ?? 'postgresql://postgres:admin@localhost:5432/invit?schema=public',
+  connectionString: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/invit_db?schema=public',
 })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
@@ -60,11 +67,29 @@ async function main() {
     console.log(`⏩ SUPER_ADMIN already exists: ${superAdminEmail}`)
   }
 
+  // ─── Template Categories ─────────────────────────────────────────────────────────────
+  const categories = [
+    { name: 'Elegant', slug: 'elegant' },
+    { name: 'Modern', slug: 'modern' },
+    { name: 'Floral', slug: 'floral' }
+  ]
+
+  let categoryMap: Record<string, string> = {}
+  for (const cat of categories) {
+    const exists = await prisma.templateCategory.findUnique({ where: { slug: cat.slug } })
+    if (!exists) {
+      const c = await prisma.templateCategory.create({ data: cat })
+      categoryMap[cat.name] = c.id
+    } else {
+      categoryMap[cat.name] = exists.id
+    }
+  }
+
   // ─── Templates ───────────────────────────────────────────────────────────────
   const templates = [
-    { name: 'Elegant Rose', category: 'Elegant', premium: false, themeConfig: elegantRoseThemeConfig },
-    { name: 'Modern Minimalist', category: 'Modern', premium: false, themeConfig: { version: 1, theme: { primaryColor: '#2D2D2D', secondaryColor: '#F8F8F8', accentColor: '#888888', backgroundColor: '#FFFFFF', textColor: '#111111', fontHeading: 'inter', fontScript: 'inter', fontBody: 'inter' }, sections: elegantRoseThemeConfig.sections } },
-    { name: 'Floral Garden', category: 'Floral', premium: true, themeConfig: { version: 1, theme: { primaryColor: '#7B9E87', secondaryColor: '#FDF6EC', accentColor: '#D4A853', backgroundColor: '#FAFAF7', textColor: '#2D2D2D', fontHeading: 'cormorant', fontScript: 'great-vibes', fontBody: 'lato' }, sections: elegantRoseThemeConfig.sections } },
+    { name: 'Elegant Rose', categoryId: categoryMap['Elegant'], premium: false, themeConfig: elegantRoseThemeConfig },
+    { name: 'Modern Minimalist', categoryId: categoryMap['Modern'], premium: false, themeConfig: { version: 1, theme: { primaryColor: '#2D2D2D', secondaryColor: '#F8F8F8', accentColor: '#888888', backgroundColor: '#FFFFFF', textColor: '#111111', fontHeading: 'inter', fontScript: 'inter', fontBody: 'inter' }, sections: elegantRoseThemeConfig.sections } },
+    { name: 'Floral Garden', categoryId: categoryMap['Floral'], premium: true, themeConfig: { version: 1, theme: { primaryColor: '#7B9E87', secondaryColor: '#FDF6EC', accentColor: '#D4A853', backgroundColor: '#FAFAF7', textColor: '#2D2D2D', fontHeading: 'cormorant', fontScript: 'great-vibes', fontBody: 'lato' }, sections: elegantRoseThemeConfig.sections } },
   ]
 
   let elegantRoseTemplate: { id: string } | null = null
