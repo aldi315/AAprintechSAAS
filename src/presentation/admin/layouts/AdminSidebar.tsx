@@ -80,27 +80,40 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
   const { state, toggleSidebar } = useSidebar()
 
   return (
-    <ShadcnSidebar variant="inset" collapsible="icon" className="border-r border-border bg-sidebar relative">
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        className="absolute top-6 -right-3 w-6 h-6 bg-primary border border-input rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground z-50 hidden lg:flex"
-      >
-        {state === 'expanded' ? (
-          <ChevronLeft className="w-3 h-3 text-background" />
-        ) : (
-          <ChevronRight className="w-3 h-3 text-background" />
-        )}
-      </button>
+    <ShadcnSidebar variant="sidebar" collapsible="icon" className="border-r border-border bg-sidebar">
       <SidebarHeader className="border-b border-border p-4">
-        <div className="flex items-center gap-3">
+        {/* Expanded state: logo + text + collapse button */}
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
           <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <LayoutDashboard className="w-4 h-4 text-white" />
           </div>
-          <div className="overflow-hidden">
+          <div className="overflow-hidden flex-1">
             <p className="font-bold text-foreground text-sm leading-tight">Super Admin</p>
             <p className="text-muted-foreground text-xs">Control Center</p>
           </div>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 text-muted-foreground hover:text-foreground hover:bg-muted hidden lg:inline-flex"
+            title="Tutup Sidebar"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Collapsed state: logo + expand button stacked */}
+        <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <LayoutDashboard className="w-4 h-4 text-white" />
+          </div>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 text-muted-foreground hover:text-foreground hover:bg-muted hidden lg:inline-flex"
+            title="Buka Sidebar"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </SidebarHeader>
 
@@ -130,8 +143,9 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border p-4">
-        <div className="flex items-center gap-3">
+      <SidebarFooter className="border-t border-border p-3">
+        {/* Expanded state */}
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
           <Avatar className="h-8 w-8 rounded-lg shrink-0">
             <AvatarFallback className="rounded-lg bg-primary text-white text-xs font-bold">
               SA
@@ -144,7 +158,7 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
           <button
             type="button"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 text-muted-foreground hover:text-foreground hover:bg-muted"
             title="Toggle theme"
           >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
@@ -154,7 +168,33 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 w-7 h-7 text-muted-foreground hover:text-red-400 hover:bg-red-900/20"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding transition-all outline-none size-8 text-muted-foreground hover:text-red-400 hover:bg-red-900/20"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Collapsed state — avatar centered + stacked action buttons */}
+        <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center gap-2">
+          <Avatar className="h-8 w-8 rounded-lg">
+            <AvatarFallback className="rounded-lg bg-primary text-white text-xs font-bold">
+              SA
+            </AvatarFallback>
+          </Avatar>
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="inline-flex items-center justify-center rounded-lg border border-transparent transition-all outline-none size-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Toggle theme"
+          >
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
+          </button>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="inline-flex items-center justify-center rounded-lg border border-transparent transition-all outline-none size-8 text-muted-foreground hover:text-red-400 hover:bg-red-900/20"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />

@@ -22,13 +22,13 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
   const router = useRouter()
   const { showAlert } = useAlert()
   const [isPending, startTransition] = useTransition()
-  
+
   // Merge template schema with custom config so we can display them
   // The actual saving will just save the customConfig
   const [sections, setSections] = useState<WidgetData[]>(() => {
     let baseSections = templateConfig?.sections || []
     let customSections = customConfig?.sections || []
-    
+
     return baseSections.map((sec: any) => {
       const override = customSections.find((cs: any) => cs.id === sec.id)
       if (override) {
@@ -37,7 +37,7 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
       return sec
     })
   })
-  
+
   const [activeId, setActiveId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile')
@@ -66,7 +66,7 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
         theme: customConfig?.theme || templateConfig?.theme || {},
         sections: sections.map(s => ({ id: s.id, type: s.type, props: s.props }))
       }
-      
+
       const res = await saveWeddingDesign(weddingId, overrides)
       if (res.success) {
         showAlert('Berhasil', 'Desain undangan berhasil disimpan!', 'success')
@@ -107,9 +107,9 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
       if (typeof value === 'boolean') {
         return (
           <label className="flex items-center gap-2 cursor-pointer mt-2">
-            <input 
-              type="checkbox" 
-              checked={value} 
+            <input
+              type="checkbox"
+              checked={value}
               onChange={e => handleChange(key, e.target.checked)}
               className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
@@ -120,11 +120,11 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
 
       if (typeof value === 'number') {
         return (
-          <input 
-            type="number" 
-            value={value} 
+          <input
+            type="number"
+            value={value}
             onChange={e => handleChange(key, Number(e.target.value))}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           />
         )
       }
@@ -132,17 +132,17 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
       if (key.toLowerCase().includes('color')) {
         return (
           <div className="flex items-center gap-2">
-            <input 
-              type="color" 
-              value={value} 
+            <input
+              type="color"
+              value={value}
               onChange={e => handleChange(key, e.target.value)}
               className="w-8 h-8 rounded cursor-pointer border border-slate-300"
             />
-            <input 
-              type="text" 
-              value={value} 
+            <input
+              type="text"
+              value={value}
               onChange={e => handleChange(key, e.target.value)}
-              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             />
           </div>
         )
@@ -150,10 +150,10 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
 
       if (key === 'align') {
         return (
-          <select 
+          <select
             value={value}
             onChange={e => handleChange(key, e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
           >
             <option value="left">Left</option>
             <option value="center">Center</option>
@@ -165,11 +165,11 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
 
       if (key === 'targetDate') {
         return (
-          <input 
-            type="datetime-local" 
-            value={value} 
+          <input
+            type="datetime-local"
+            value={value}
             onChange={e => handleChange(key, e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           />
         )
       }
@@ -181,7 +181,7 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
               {value.map((acc, idx) => (
                 <div key={idx} className="relative p-3 border border-slate-200 rounded-lg bg-white space-y-2">
                   <div className="absolute top-2 right-2 z-10">
-                    <button 
+                    <button
                       onClick={() => {
                         const newArr = [...value]
                         newArr.splice(idx, 1)
@@ -192,9 +192,9 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <input type="text" value={acc.bankName} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], bankName: e.target.value }; handleChange(key, newArr) }} placeholder="Nama Bank (mis. BCA)" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
-                  <input type="text" value={acc.accountNumber} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], accountNumber: e.target.value }; handleChange(key, newArr) }} placeholder="Nomor Rekening" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono" />
-                  <input type="text" value={acc.accountName} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], accountName: e.target.value }; handleChange(key, newArr) }} placeholder="Atas Nama" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                  <input type="text" value={acc.bankName} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], bankName: e.target.value }; handleChange(key, newArr) }} placeholder="Nama Bank (mis. BCA)" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+                  <input type="text" value={acc.accountNumber} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], accountNumber: e.target.value }; handleChange(key, newArr) }} placeholder="Nomor Rekening" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono" />
+                  <input type="text" value={acc.accountName} onChange={e => { const newArr = [...value]; newArr[idx] = { ...newArr[idx], accountName: e.target.value }; handleChange(key, newArr) }} placeholder="Atas Nama" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
                 </div>
               ))}
               <button onClick={() => handleChange(key, [...value, { bankName: '', accountNumber: '', accountName: '' }])} className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-indigo-600 hover:border-indigo-300 text-sm font-medium transition-colors">
@@ -203,7 +203,7 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
             </div>
           )
         }
-        
+
         if (key.toLowerCase().includes('image') || key.toLowerCase().includes('photo')) {
           return (
             <div className="space-y-4">
@@ -223,10 +223,10 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
         }
 
         return (
-          <textarea 
-            value={value.join('\n')} 
+          <textarea
+            value={value.join('\n')}
             onChange={e => handleChange(key, e.target.value.split('\n').filter(s => s.trim() !== ''))}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[100px]"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[100px]"
             placeholder="Pisahkan baris dengan Enter..."
           />
         )
@@ -237,10 +237,10 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
       }
 
       return (
-        <textarea 
-          value={value} 
+        <textarea
+          value={value}
           onChange={e => handleChange(key, e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[60px]"
+          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[60px]"
         />
       )
     }
@@ -308,13 +308,13 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
           </div>
 
           <div className="flex items-center bg-slate-100 p-1 rounded-lg">
-            <button 
+            <button
               onClick={() => setViewMode('mobile')}
               className={`p-1.5 rounded-md flex items-center justify-center transition-colors ${viewMode === 'mobile' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Smartphone className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={() => setViewMode('desktop')}
               className={`p-1.5 rounded-md flex items-center justify-center transition-colors ${viewMode === 'desktop' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
             >
@@ -327,11 +327,10 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
           <button
             onClick={handleToggleStatus}
             disabled={isPending}
-            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg font-medium text-sm transition-colors disabled:opacity-50 ${
-              status === 'PUBLISHED' 
-                ? 'border-amber-300 text-amber-700 hover:bg-amber-50 bg-white' 
-                : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 bg-white'
-            }`}
+            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg font-medium text-sm transition-colors disabled:opacity-50 ${status === 'PUBLISHED'
+              ? 'border-amber-300 text-amber-700 hover:bg-amber-50 bg-white'
+              : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 bg-white'
+              }`}
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (status === 'PUBLISHED' ? <FileEdit className="w-4 h-4" /> : <Globe className="w-4 h-4" />)}
             {status === 'PUBLISHED' ? 'Set as Draft' : 'Publish'}
@@ -347,7 +346,7 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Data
@@ -375,11 +374,10 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
                   <div
                     key={section.id}
                     onClick={() => setActiveId(section.id)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${
-                      isActive 
-                        ? 'bg-indigo-50 border-indigo-200 shadow-sm text-indigo-700' 
-                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${isActive
+                      ? 'bg-primary/10 border-primary shadow-sm text-primary/80'
+                      : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
                   >
                     <span className="text-sm font-medium">{widgetConfig?.name || section.type}</span>
                   </div>
@@ -391,12 +389,12 @@ export function WeddingDesignEditor({ weddingId, weddingName, weddingSlug, statu
 
         {/* Canvas Area */}
         <div className="flex-1 flex justify-center overflow-auto p-4 md:p-8 bg-slate-100 relative">
-          <Canvas 
-            sections={sections} 
-            activeId={activeId} 
-            onSelect={setActiveId} 
+          <Canvas
+            sections={sections}
+            activeId={activeId}
+            onSelect={setActiveId}
             // no reorder callback since read-only
-            onReorder={() => {}} 
+            onReorder={() => { }}
             viewMode={viewMode}
           />
         </div>
