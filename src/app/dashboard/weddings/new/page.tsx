@@ -1,9 +1,9 @@
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { getTemplateOptions } from '@/application/queries/wedding.queries'
 import { CreateWeddingForm } from './CreateWeddingForm'
 
 export default async function NewWeddingPage() {
-  await requireTenant()
+  await requireReseller()
   const templates = await getTemplateOptions()
 
   return (

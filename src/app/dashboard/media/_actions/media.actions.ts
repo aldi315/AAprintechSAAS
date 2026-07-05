@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { supabaseServerClient, BUCKET_NAME } from '@/infrastructure/storage/supabase'
@@ -15,7 +15,7 @@ interface ActionResult { success: boolean; error?: string }
 
 export async function uploadMediaAction(formData: FormData): Promise<ActionResult> {
   try {
-    const ctx = await requireTenant()
+    const ctx = await requireReseller()
     const file = formData.get('file') as File | null
     const weddingId = formData.get('weddingId') as string | null
 
@@ -27,8 +27,8 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
 
     // Get Tenant Slug and Wedding Slug
     const [tenant, wedding] = await Promise.all([
-      (prisma as any).tenant.findUnique({ where: { id: ctx.tenantId }, select: { slug: true } }),
-      (prisma as any).wedding.findFirst({ where: { id: weddingId, tenantId: ctx.tenantId }, select: { slug: true } })
+      (prisma as any).reseller.findUnique({ where: { id: ctx.resellerId }, select: { slug: true } }),
+      (prisma as any).wedding.findFirst({ where: { id: weddingId, resellerId: ctx.resellerId }, select: { slug: true } })
     ])
 
     if (!tenant) return { success: false, error: 'Tenant tidak ditemukan.' }
@@ -37,7 +37,7 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     const ext = path.extname(file.name) || (file.type === 'image/webp' ? '.webp' : '.jpg')
     const randomName = uuidv4()
     
-    // Path: tenantSlug/weddingSlug/gallery/random.webp
+    // Path: resellerSlug/weddingSlug/gallery/random.webp
     const storagePath = `${tenant.slug}/${wedding.slug}/gallery/${randomName}${ext}`
 
     // Upload to Supabase
@@ -65,7 +65,7 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     // Save to Prisma
     await (prisma as any).media.create({
       data: {
-        tenantId: ctx.tenantId,
+        resellerId: ctx.resellerId,
         weddingId: weddingId,
         provider: 'supabase',
         fileUrl: publicUrl,
@@ -84,10 +84,10 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
 
 export async function deleteMediaAction(mediaId: string): Promise<ActionResult> {
   try {
-    const ctx = await requireTenant()
+    const ctx = await requireReseller()
     
     const media = await (prisma as any).media.findFirst({
-      where: { id: mediaId, tenantId: ctx.tenantId }
+      where: { id: mediaId, resellerId: ctx.resellerId }
     })
     
     if (!media) return { success: false, error: 'Media tidak ditemukan.' }

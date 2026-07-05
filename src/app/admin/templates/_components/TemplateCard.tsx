@@ -1,7 +1,10 @@
 'use client'
 
-import { Edit, Palette, Trash2 } from 'lucide-react'
+import { Edit2, Palette, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 interface TemplateCardProps {
   template: {
@@ -10,7 +13,7 @@ interface TemplateCardProps {
     categoryId: string
     category?: { name: string }
     previewImage: string | null
-    premium: boolean
+    price: number
     active: boolean
   }
   onEdit: () => void
@@ -19,74 +22,71 @@ interface TemplateCardProps {
 
 export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
       {/* Image Preview */}
-      <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+      <div className="relative aspect-[1/1] bg-muted overflow-hidden -mt-4 -mx-0 rounded-t-xl">
         {template.previewImage ? (
-          <img 
-            src={template.previewImage} 
-            alt={template.name} 
+          <img
+            src={template.previewImage}
+            alt={template.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-400">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             <span className="text-sm">No Image</span>
           </div>
         )}
-        
+
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ${
-            template.premium 
-              ? 'bg-amber-100 text-amber-700 border border-amber-200' 
-              : 'bg-white text-slate-700 border border-slate-200'
-          }`}>
-            {template.premium ? 'Premium' : 'Free'}
-          </span>
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ${
-            template.active 
-              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-              : 'bg-red-100 text-red-700 border border-red-200'
-          }`}>
+          <Badge variant={template.price > 0 ? "secondary" : "default"} className="shadow-sm">
+            {template.price > 0 ? `Rp ${template.price.toLocaleString('id-ID')}` : 'Free'}
+          </Badge>
+          <Badge variant={template.active ? "default" : "destructive"} className="shadow-sm">
             {template.active ? 'Active' : 'Disabled'}
-          </span>
+          </Badge>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-5 flex-1 flex flex-col">
-        <h3 className="text-lg font-bold text-slate-800 mb-1 line-clamp-1">{template.name}</h3>
-        <p className="text-sm text-slate-500 capitalize mb-6">{template.category?.name || 'Uncategorized'}</p>
-        
+      <CardContent className="p-5 flex-1 flex flex-col">
+        <h3 className="text-lg font-bold text-foreground mb-1 line-clamp-1">{template.name}</h3>
+        <p className="text-sm text-muted-foreground capitalize mb-6">{template.category?.name || 'Uncategorized'}</p>
+
         <div className="mt-auto grid grid-cols-3 gap-2">
-          <button 
+          <Button
+            variant="outline"
             onClick={onEdit}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+            className="flex flex-col items-center justify-center gap-1 h-auto py-2"
             title="Edit Details"
           >
-            <Edit className="w-4 h-4" />
+            <Edit2 className="w-4 h-4" />
             <span className="text-[10px] font-semibold uppercase tracking-wider">Edit</span>
-          </button>
-          
-          <Link 
-            href={`/admin/templates/${template.id}/design`}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl bg-slate-50 text-slate-600 hover:bg-[#C8A882]/10 hover:text-[#C8A882] transition-colors"
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            className="flex flex-col items-center justify-center gap-1 h-auto py-2 hover:text-amber-600 hover:border-amber-600"
             title="Design Editor"
           >
-            <Palette className="w-4 h-4" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider">Design</span>
-          </Link>
-          
-          <button 
+            <Link href={`/admin/templates/${template.id}/design`}>
+              <Palette className="w-4 h-4" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider">Design</span>
+            </Link>
+          </Button>
+
+          <Button
+            variant="outline"
             onClick={onDelete}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl bg-slate-50 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="flex flex-col items-center justify-center gap-1 h-auto py-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
             title="Delete Template"
           >
             <Trash2 className="w-4 h-4" />
             <span className="text-[10px] font-semibold uppercase tracking-wider">Delete</span>
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

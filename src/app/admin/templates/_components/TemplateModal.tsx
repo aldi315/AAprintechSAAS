@@ -6,6 +6,12 @@ import { uploadImage } from '@/application/actions/upload.actions'
 import { MediaLibraryModal } from './MediaLibraryModal'
 import { ImageCropperModal } from './ImageCropperModal'
 import { useAlert } from '@/presentation/components/ui/AlertProvider'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface TemplateModalProps {
   isOpen: boolean
@@ -20,7 +26,7 @@ export function TemplateModal({ isOpen, onClose, onSave, initialData, categories
   const [name, setName] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [previewImage, setPreviewImage] = useState('')
-  const [premium, setPremium] = useState(false)
+  const [price, setPrice] = useState<number>(0)
   const [active, setActive] = useState(true)
   const [loading, setLoading] = useState(false)
   
@@ -38,13 +44,13 @@ export function TemplateModal({ isOpen, onClose, onSave, initialData, categories
       setName(initialData.name || '')
       setCategoryId(initialData.categoryId || '')
       setPreviewImage(initialData.previewImage || '')
-      setPremium(initialData.premium || false)
+      setPrice(initialData.price || 0)
       setActive(initialData.active ?? true)
     } else {
       setName('')
       setCategoryId(categories.length > 0 ? categories[0].id : '')
       setPreviewImage('')
-      setPremium(false)
+      setPrice(0)
       setActive(true)
     }
     setFile(null)
@@ -89,10 +95,10 @@ export function TemplateModal({ isOpen, onClose, onSave, initialData, categories
         formData.append('file', file, 'cropped-image.jpg')
         const uploadRes = await uploadImage(formData)
         if (!uploadRes.success) throw new Error(uploadRes.error)
-        finalImageUrl = uploadRes.url
+        finalImageUrl = uploadRes.url || ''
       }
       
-      await onSave({ name, categoryId, previewImage: finalImageUrl, premium, active })
+      await onSave({ name, categoryId, previewImage: finalImageUrl, price, active })
       onClose()
     } catch (error: any) {
       showAlert('Gagal Menyimpan', error.message || "Terjadi kesalahan saat menyimpan.", 'error')
@@ -103,130 +109,113 @@ export function TemplateModal({ isOpen, onClose, onSave, initialData, categories
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
-
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-800">
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
               {initialData ? 'Edit Template' : 'Add New Template'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+            </DialogTitle>
+          </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 block">Template Name</label>
-              <input
+          <form id="template-form" onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Template Name</Label>
+              <Input
                 required
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-slate-900 bg-white"
                 placeholder="e.g. Elegant Rose"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 block">Category</label>
-              <select
-                required
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-slate-900 bg-white"
-              >
-                <option value="" disabled>Pilih kategori...</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select required value={categoryId} onValueChange={(val) => setCategoryId(val as string)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 block">Preview Image</label>
+            <div className="space-y-2">
+              <Label>Harga (Rp)</Label>
+              <Input
+                required
+                type="number"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Preview Image</Label>
               <div className="flex items-center gap-4">
                 {/* Thumbnail Display */}
-                <div className="w-20 h-20 rounded-lg bg-slate-50 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden shrink-0 border border-input flex items-center justify-center">
                   {(localPreview || previewImage) ? (
                     <img src={localPreview || previewImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <ImageIcon className="w-6 h-6 text-slate-300" />
+                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
                   )}
                 </div>
                 
                 {/* Actions */}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg cursor-pointer text-sm font-medium transition-colors border border-indigo-100">
-                    <Upload className="w-4 h-4" />
-                    Upload & Crop
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
+                  <Button type="button" variant="outline" className="w-full relative overflow-hidden" asChild>
+                    <label className="cursor-pointer flex items-center justify-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      Upload & Crop
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </Button>
                   
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => setIsMediaLibOpen(true)}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer text-sm font-medium transition-colors border border-slate-200"
+                    className="w-full flex items-center justify-center gap-2"
                   >
                     <Library className="w-4 h-4" />
                     Pilih dari Galeri
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-6 pt-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={premium}
-                  onChange={(e) => setPremium(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span className="text-sm font-medium text-slate-700">Premium Template</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={active}
-                  onChange={(e) => setActive(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="text-sm font-medium text-slate-700">Active</span>
-              </label>
-            </div>
-
-            <div className="pt-6 flex justify-end gap-3 border-t border-slate-100 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {initialData ? 'Save Changes' : 'Create Template'}
-              </button>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="active" 
+                checked={active} 
+                onCheckedChange={(checked) => setActive(checked as boolean)} 
+              />
+              <Label htmlFor="active" className="cursor-pointer">Active</Label>
             </div>
           </form>
-        </div>
-      </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" form="template-form" disabled={loading}>
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {initialData ? 'Save Changes' : 'Create Template'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <MediaLibraryModal 
         isOpen={isMediaLibOpen}

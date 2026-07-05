@@ -1,8 +1,10 @@
-import { requireTenant } from '@/lib/tenant-guard'
-import { getWeddingsByTenant } from '@/application/queries/wedding.queries'
-import { Card } from '@/presentation/dashboard/components/ui/Card'
+import { requireReseller } from '@/lib/reseller-guard'
+import { getWeddingsByReseller } from '@/application/queries/wedding.queries'
+import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/presentation/dashboard/components/ui/Badge'
 import { EmptyState } from '@/presentation/dashboard/components/ui/EmptyState'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 import { Heart, Plus, Eye, Pencil, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { togglePublishAction, deleteWeddingAction } from './_actions/wedding.actions'
@@ -13,86 +15,86 @@ interface PageProps {
 }
 
 export default async function WeddingsPage({ searchParams }: PageProps) {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const sp = await searchParams
   const page = Number(sp.page) || 1
   const search = sp.search ?? ''
-  const { items, total, totalPages } = await getWeddingsByTenant(ctx.tenantId, page, 10, search)
+  const { items, total, totalPages } = await getWeddingsByReseller(ctx.resellerId, page, 10, search)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Weddings</h1>
-          <p className="text-sm text-slate-500 mt-1">{total} undangan total</p>
+          <h1 className="text-2xl font-bold text-foreground">Weddings</h1>
+          <p className="text-sm text-muted-foreground mt-1">{total} undangan total</p>
         </div>
-        <Link
-          href="/dashboard/weddings/new"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#C8A882] text-white rounded-lg text-sm font-medium hover:bg-[#b89872] transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Buat Baru
-        </Link>
+        <Button asChild>
+          <Link href="/dashboard/weddings/new">
+            <Plus className="w-4 h-4 mr-2" /> Buat Baru
+          </Link>
+        </Button>
       </div>
 
       {items.length === 0 ? (
         <Card>
-          <EmptyState
-            icon={Heart}
-            title="Belum ada undangan"
-            description="Mulai buat undangan pernikahan digital pertama Anda."
-            action={
-              <Link href="/dashboard/weddings/new" className="inline-flex items-center gap-2 px-4 py-2 bg-[#C8A882] text-white rounded-lg text-sm font-medium hover:bg-[#b89872]">
-                <Plus className="w-4 h-4" /> Buat Undangan
-              </Link>
-            }
-          />
+          <CardContent className="pt-6">
+            <EmptyState
+              icon={Heart}
+              title="Belum ada undangan"
+              description="Mulai buat undangan pernikahan digital pertama Anda."
+              action={
+                <Button asChild>
+                  <Link href="/dashboard/weddings/new">
+                    <Plus className="w-4 h-4 mr-2" /> Buat Undangan
+                  </Link>
+                </Button>
+              }
+            />
+          </CardContent>
         </Card>
       ) : (
-        <Card padding={false}>
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Pasangan</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Slug</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Status</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Views</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Template</th>
-                  <th className="text-right font-medium text-slate-500 px-6 py-3">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {items.map((w) => (
-                  <tr key={w.id} className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-slate-800">{w.brideName} & {w.groomName}</p>
-                      <p className="text-xs text-slate-400">{w.eventsCount} acara · {w.guestsCount} tamu</p>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 font-mono text-xs">/{w.slug}</td>
-                    <td className="px-6 py-4"><StatusBadge status={w.status} /></td>
-                    <td className="px-6 py-4 text-slate-600">{w.viewCount}</td>
-                    <td className="px-6 py-4 text-slate-600 text-xs">{w.templateName}</td>
-                    <td className="px-6 py-4 text-right">
-                      <WeddingActions weddingId={w.id} slug={w.slug} status={w.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="rounded-md border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Pasangan</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Template</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((w) => (
+                <TableRow key={w.id}>
+                  <TableCell>
+                    <p className="font-medium">{w.brideName} & {w.groomName}</p>
+                    <p className="text-xs text-muted-foreground">{w.eventsCount} acara · {w.guestsCount} tamu</p>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">/{w.slug}</TableCell>
+                  <TableCell><StatusBadge status={w.status} /></TableCell>
+                  <TableCell className="text-muted-foreground">{w.viewCount}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{w.templateName}</TableCell>
+                  <TableCell className="text-right">
+                    <WeddingActions weddingId={w.id} slug={w.slug} status={w.status} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100">
-              <p className="text-xs text-slate-500">Halaman {page} dari {totalPages}</p>
-              <div className="flex gap-1">
-                {page > 1 && <Link href={`/dashboard/weddings?page=${page - 1}`} className="px-3 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50">Prev</Link>}
-                {page < totalPages && <Link href={`/dashboard/weddings?page=${page + 1}`} className="px-3 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50">Next</Link>}
+            <div className="flex items-center justify-between px-6 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">Halaman {page} dari {totalPages}</p>
+              <div className="flex gap-2">
+                {page > 1 && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/weddings?page=${page - 1}`}>Prev</Link></Button>}
+                {page < totalPages && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/weddings?page=${page + 1}`}>Next</Link></Button>}
               </div>
             </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   )

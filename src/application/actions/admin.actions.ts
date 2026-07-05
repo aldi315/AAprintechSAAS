@@ -46,21 +46,21 @@ import { v4 as uuidv4 } from 'uuid'
 export async function uploadGlobalMediaAction(formData: FormData) {
   try {
     const file = formData.get('file') as File | null
-    const tenantId = formData.get('tenantId') as string | null
+    const resellerId = formData.get('resellerId') as string | null
 
     if (!file) return { success: false, error: 'File tidak ditemukan.' }
-    if (!tenantId) return { success: false, error: 'Tenant tidak dipilih.' }
+    if (!resellerId) return { success: false, error: 'Reseller tidak dipilih.' }
     
     if (file.size > 5 * 1024 * 1024) return { success: false, error: 'Ukuran file maksimal 5MB.' }
 
-    const tenant = await (prisma as any).tenant.findUnique({ where: { id: tenantId }, select: { slug: true } })
-    if (!tenant) return { success: false, error: 'Tenant tidak ditemukan.' }
+    const reseller = await (prisma as any).reseller.findUnique({ where: { id: resellerId }, select: { slug: true } })
+    if (!reseller) return { success: false, error: 'Reseller tidak ditemukan.' }
 
     const ext = path.extname(file.name) || (file.type === 'image/webp' ? '.webp' : '.jpg')
     const randomName = uuidv4()
     
-    // Path: tenantSlug/global/random.webp
-    const storagePath = `${tenant.slug}/global/${randomName}${ext}`
+    // Path: resellerSlug/global/random.webp
+    const storagePath = `${reseller.slug}/global/${randomName}${ext}`
 
     const buffer = Buffer.from(await file.arrayBuffer())
     
@@ -84,7 +84,7 @@ export async function uploadGlobalMediaAction(formData: FormData) {
 
     await (prisma as any).media.create({
       data: {
-        tenantId,
+        resellerId,
         provider: 'supabase',
         fileUrl: publicUrl,
         fileType: file.type,

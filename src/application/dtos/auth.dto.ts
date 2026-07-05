@@ -11,8 +11,8 @@ export const LoginInputSchema = z.object({
 })
 export type LoginInput = z.infer<typeof LoginInputSchema>
 
-// --- Register Tenant ---
-export const RegisterTenantInputSchema = z.object({
+// --- Register Reseller ---
+export const RegisterResellerInputSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter.'),
   email: z.string().email('Format email tidak valid.'),
   password: z
@@ -26,7 +26,7 @@ export const RegisterTenantInputSchema = z.object({
     .min(3, 'Slug minimal 3 karakter.')
     .regex(/^[a-z0-9-]+$/, 'Slug hanya boleh huruf kecil, angka, dan tanda hubung.'),
 })
-export type RegisterTenantInput = z.infer<typeof RegisterTenantInputSchema>
+export type RegisterResellerInput = z.infer<typeof RegisterResellerInputSchema>
 
 // --- Output ---
 export interface AuthOutput {
@@ -34,6 +34,6 @@ export interface AuthOutput {
   name: string
   email: string
   role: string
-  tenantId: string | null
-  tenantSlug: string | null
+  resellerId: string | null
+  resellerSlug: string | null
 }

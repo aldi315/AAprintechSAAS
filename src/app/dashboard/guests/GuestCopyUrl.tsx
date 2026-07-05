@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { Button } from "@/components/ui/button"
 
 export function GuestCopyUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false)
@@ -12,16 +13,17 @@ export function GuestCopyUrl({ url }: { url: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors hover:bg-slate-100"
       title={url}
     >
       {copied ? (
-        <><Check className="w-3.5 h-3.5 text-emerald-500" /><span className="text-emerald-600">Copied!</span></>
+        <><Check className="w-3.5 h-3.5 text-emerald-500 mr-2" /><span className="text-emerald-600">Copied!</span></>
       ) : (
-        <><Copy className="w-3.5 h-3.5 text-slate-400" /><span className="text-slate-500">Copy URL</span></>
+        <><Copy className="w-3.5 h-3.5 text-muted-foreground mr-2" /><span className="text-muted-foreground">Copy URL</span></>
       )}
-    </button>
+    </Button>
   )
 }

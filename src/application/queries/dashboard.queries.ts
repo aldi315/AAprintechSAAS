@@ -23,18 +23,18 @@ export interface RecentRsvp {
   createdAt: string
 }
 
-export async function getDashboardStats(tenantId: string): Promise<DashboardStats> {
+export async function getDashboardStats(resellerId: string): Promise<DashboardStats> {
   const [weddings, guests, rsvps] = await Promise.all([
     (prisma as any).wedding.findMany({
-      where: { tenantId },
+      where: { resellerId },
       select: { id: true, status: true },
     }),
     (prisma as any).invitationGuest.findMany({
-      where: { wedding: { tenantId } },
+      where: { wedding: { resellerId } },
       select: { id: true },
     }),
     (prisma as any).rSVP.findMany({
-      where: { wedding: { tenantId } },
+      where: { wedding: { resellerId } },
       select: { id: true, attendance: true },
     }),
   ])
@@ -55,9 +55,9 @@ export async function getDashboardStats(tenantId: string): Promise<DashboardStat
   }
 }
 
-export async function getRecentRsvps(tenantId: string, limit = 5): Promise<RecentRsvp[]> {
+export async function getRecentRsvps(resellerId: string, limit = 5): Promise<RecentRsvp[]> {
   const rsvps = await (prisma as any).rSVP.findMany({
-    where: { wedding: { tenantId } },
+    where: { wedding: { resellerId } },
     orderBy: { createdAt: 'desc' },
     take: limit,
     include: {
@@ -77,10 +77,10 @@ export async function getRecentRsvps(tenantId: string, limit = 5): Promise<Recen
 }
 
 export async function getSystemStats() {
-  const [tenantCount, weddingCount, rsvpCount] = await Promise.all([
-    (prisma as any).tenant.count(),
+  const [resellerCount, weddingCount, rsvpCount] = await Promise.all([
+    (prisma as any).reseller.count(),
     (prisma as any).wedding.count(),
     (prisma as any).rSVP.count(),
   ])
-  return { tenantCount, weddingCount, rsvpCount }
+  return { resellerCount, weddingCount, rsvpCount }
 }

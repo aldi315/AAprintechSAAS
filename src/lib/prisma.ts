@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 // Model yang menggunakan soft delete (memiliki field deletedAt)
-const SOFT_DELETE_MODELS: Prisma.ModelName[] = ['User', 'Tenant', 'Wedding']
+const SOFT_DELETE_MODELS: Prisma.ModelName[] = ['User', 'Reseller', 'Wedding']
 
 /**
  * SOFT DELETE EXTENSION — AMAN DENGAN INCLUDE/RELATION
@@ -47,7 +47,7 @@ const softDeleteExtension = Prisma.defineExtension({
         return query(args)
       },
     },
-    tenant: {
+    reseller: {
       findMany({ args, query }) {
         args.where = { deletedAt: null, ...args.where }
         return query(args)
@@ -110,7 +110,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
  * await prisma.user.update({ where: { id }, data: { deletedAt: new Date() } })
  *
  * // QUERY normal — deletedAt: null otomatis diterapkan
- * await prisma.wedding.findMany({ where: { tenantId }, include: { events: true } })
+ * await prisma.wedding.findMany({ where: { resellerId }, include: { events: true } })
  * // ✅ AMAN: include.events tidak tersentuh oleh extension ini
  *
  * // QUERY termasuk data yang sudah di-soft-delete (misal halaman admin restore)

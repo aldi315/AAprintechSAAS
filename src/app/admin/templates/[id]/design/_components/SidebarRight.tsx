@@ -30,6 +30,11 @@ interface SidebarRightProps {
 
 export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate, onDelete, onDuplicate }: SidebarRightProps) {
   const [tab, setTab] = useState<'layers' | 'properties'>('layers')
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Auto-switch to properties when a widget is selected
   useEffect(() => {
@@ -62,15 +67,18 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
   const renderLayers = () => {
     if (sections.length === 0) {
       return (
-        <div className="text-center text-slate-400 mt-20">
+        <div className="text-center text-muted-foreground mt-20">
           <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm">Belum ada layer.</p>
         </div>
       )
     }
 
+    if (!isMounted) return null
+
     return (
       <DndContext 
+        id="dnd-sidebar-right"
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
@@ -101,7 +109,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
 
     if (!activeSection) {
       return (
-        <div className="text-center text-slate-400 mt-20 px-6">
+        <div className="text-center text-muted-foreground mt-20 px-6">
           <Settings2 className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm">Klik layer atau widget di kanvas untuk melihat propertinya.</p>
         </div>
@@ -122,9 +130,9 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
               type="checkbox" 
               checked={value} 
               onChange={e => handleChange(key, e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded border-input text-primary focus:ring-ring bg-background"
             />
-            <span className="text-sm font-medium text-slate-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+            <span className="text-sm font-medium text-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
           </label>
         )
       }
@@ -135,7 +143,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
             type="number" 
             value={value} 
             onChange={e => handleChange(key, Number(e.target.value))}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         )
       }
@@ -147,13 +155,13 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
               type="color" 
               value={value} 
               onChange={e => handleChange(key, e.target.value)}
-              className="w-8 h-8 rounded cursor-pointer border border-slate-300"
+              className="w-8 h-8 rounded cursor-pointer border border-input bg-background"
             />
             <input 
               type="text" 
               value={value} 
               onChange={e => handleChange(key, e.target.value)}
-              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              className="flex-1 px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         )
@@ -164,7 +172,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
           <select 
             value={value}
             onChange={e => handleChange(key, e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="left">Left</option>
             <option value="center">Center</option>
@@ -181,7 +189,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
             type="datetime-local" 
             value={value} 
             onChange={e => handleChange(key, e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         )
       }
@@ -192,7 +200,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
           return (
             <div className="space-y-4">
               {value.map((acc, idx) => (
-                <div key={idx} className="relative p-3 border border-slate-200 rounded-lg bg-white space-y-2">
+                <div key={idx} className="relative p-3 border border-border rounded-lg bg-card space-y-2">
                   <div className="absolute top-2 right-2 z-10">
                     <button 
                       onClick={() => {
@@ -200,7 +208,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
                         newArr.splice(idx, 1)
                         handleChange(key, newArr)
                       }}
-                      className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                      className="p-1 text-destructive hover:text-destructive-foreground hover:bg-destructive/10 rounded"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -214,7 +222,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
                       handleChange(key, newArr)
                     }}
                     placeholder="Nama Bank (mis. BCA)"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <input 
                     type="text" 
@@ -225,7 +233,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
                       handleChange(key, newArr)
                     }}
                     placeholder="Nomor Rekening"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                    className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring font-mono"
                   />
                   <input 
                     type="text" 
@@ -236,13 +244,13 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
                       handleChange(key, newArr)
                     }}
                     placeholder="Atas Nama"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
               ))}
               <button 
                 onClick={() => handleChange(key, [...value, { bankName: '', accountNumber: '', accountName: '' }])}
-                className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-indigo-600 hover:border-indigo-300 text-sm font-medium transition-colors"
+                className="w-full py-2 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary/50 text-sm font-medium transition-colors"
               >
                 + Tambah Akun Bank
               </button>
@@ -254,7 +262,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
           return (
             <div className="space-y-4">
               {value.map((imgUrl, idx) => (
-                <div key={idx} className="relative p-2 border border-slate-200 rounded-lg bg-white">
+                <div key={idx} className="relative p-2 border border-border rounded-lg bg-card">
                   <div className="absolute -top-2 -right-2 z-10">
                     <button 
                       onClick={() => {
@@ -262,7 +270,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
                         newArr.splice(idx, 1)
                         handleChange(key, newArr)
                       }}
-                      className="p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
+                      className="p-1 bg-destructive/10 text-destructive rounded-full hover:bg-destructive/20"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -279,7 +287,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
               ))}
               <button 
                 onClick={() => handleChange(key, [...value, 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=400&auto=format&fit=crop'])}
-                className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-indigo-600 hover:border-indigo-300 text-sm font-medium transition-colors"
+                className="w-full py-2 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary/50 text-sm font-medium transition-colors"
               >
                 + Tambah Foto
               </button>
@@ -291,7 +299,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
           <textarea 
             value={value.join('\n')} 
             onChange={e => handleChange(key, e.target.value.split('\n').filter(s => s.trim() !== ''))}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[100px]"
+            className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px]"
             placeholder="Pisahkan dengan baris baru (Enter)..."
           />
         )
@@ -311,21 +319,21 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
         <textarea 
           value={value} 
           onChange={e => handleChange(key, e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[60px]"
+          className="w-full px-3 py-2 border border-input bg-background rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[60px]"
         />
       )
     }
 
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50">
+        <div className="p-4 border-b border-border flex items-center justify-between shrink-0 bg-muted/50">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">Properties</h2>
-            <p className="text-xs text-slate-500 mt-0.5 capitalize">{type} Widget</p>
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Properties</h2>
+            <p className="text-xs text-muted-foreground mt-0.5 capitalize">{type} Widget</p>
           </div>
           <button 
             onClick={() => onDelete(id)}
-            className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
             title="Delete Widget"
           >
             <Trash2 className="w-4 h-4" />
@@ -335,7 +343,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
         <div className="p-4 flex-1 overflow-y-auto space-y-4">
           {Object.entries(props).map(([key, value]) => (
             <div key={key} className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-600 capitalize">
+              <label className="text-xs font-medium text-muted-foreground capitalize">
                 {key.replace(/([A-Z])/g, ' $1').trim()}
               </label>
               {renderField(key, value)}
@@ -347,13 +355,13 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
   }
 
   return (
-    <div className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0">
+    <div className="w-80 bg-card border-l border-border flex flex-col shrink-0 h-full">
       {/* Tabs */}
-      <div className="flex items-center p-2 border-b border-slate-100 shrink-0">
+      <div className="flex items-center p-2 border-b border-border shrink-0">
         <button
           onClick={() => setTab('layers')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${
-            tab === 'layers' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            tab === 'layers' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -362,7 +370,7 @@ export function SidebarRight({ sections, activeId, onSelect, onReorder, onUpdate
         <button
           onClick={() => setTab('properties')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${
-            tab === 'properties' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            tab === 'properties' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
           }`}
         >
           <Settings2 className="w-4 h-4" />

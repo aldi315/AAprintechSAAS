@@ -9,8 +9,8 @@ export interface MediaListItem {
   createdAt: string
 }
 
-export async function getMediaByTenant(
-  tenantId: string,
+export async function getMediaByReseller(
+  resellerId: string,
   page = 1,
   perPage = 20
 ): Promise<{ items: MediaListItem[]; total: number; totalPages: number }> {
@@ -18,12 +18,12 @@ export async function getMediaByTenant(
 
   const [media, total] = await Promise.all([
     (prisma as any).media.findMany({
-      where: { tenantId },
+      where: { resellerId },
       skip,
       take: perPage,
       orderBy: { createdAt: 'desc' },
     }),
-    (prisma as any).media.count({ where: { tenantId } }),
+    (prisma as any).media.count({ where: { resellerId } }),
   ])
 
   return {

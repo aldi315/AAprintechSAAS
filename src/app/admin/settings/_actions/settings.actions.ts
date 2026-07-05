@@ -14,7 +14,7 @@ async function requireSuperAdmin() {
   return session
 }
 
-export async function updateAdminTenantSettings(formData: FormData) {
+export async function updateAdminResellerSettings(formData: FormData) {
   const session = await requireSuperAdmin()
 
   const businessName = formData.get('businessName') as string
@@ -22,13 +22,13 @@ export async function updateAdminTenantSettings(formData: FormData) {
     return { success: false, error: 'Nama bisnis minimal 2 karakter.' }
   }
 
-  if (!session.user.tenantId) {
+  if (!session.user.resellerId) {
     return { success: false, error: 'Tenant admin tidak ditemukan.' }
   }
 
   try {
-    await (prisma as any).tenant.update({
-      where: { id: session.user.tenantId },
+    await (prisma as any).reseller.update({
+      where: { id: session.user.resellerId },
       data: { businessName: businessName.trim() }
     })
 
@@ -39,10 +39,10 @@ export async function updateAdminTenantSettings(formData: FormData) {
   }
 }
 
-export async function createAdminTenantAction(formData: FormData) {
+export async function createAdminResellerAction(formData: FormData) {
   const session = await requireSuperAdmin()
 
-  if (session.user.tenantId) {
+  if (session.user.resellerId) {
     return { success: false, error: 'Admin sudah memiliki tenant.' }
   }
 
@@ -57,12 +57,12 @@ export async function createAdminTenantAction(formData: FormData) {
     const baseSlug = 'admin-' + businessName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
     let slug = baseSlug
     let counter = 0
-    while (await (prisma as any).tenant.findUnique({ where: { slug } })) {
+    while (await (prisma as any).reseller.findUnique({ where: { slug } })) {
       counter++
       slug = `${baseSlug}-${counter}`
     }
 
-    await (prisma as any).tenant.create({
+    await (prisma as any).reseller.create({
       data: {
         businessName: businessName.trim(),
         slug,
@@ -72,7 +72,7 @@ export async function createAdminTenantAction(formData: FormData) {
     })
 
     revalidatePath('/admin/settings')
-    revalidatePath('/admin/weddings')
+    revalidatePath('/admin/invitations')
     return { success: true, needsRelogin: true }
   } catch (err: any) {
     return { success: false, error: err.message || 'Gagal membuat profil bisnis.' }

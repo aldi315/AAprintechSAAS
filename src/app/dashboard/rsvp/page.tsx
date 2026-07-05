@@ -1,9 +1,11 @@
-import { requireTenant } from '@/lib/tenant-guard'
-import { getRsvpsByTenant } from '@/application/queries/guest.queries'
-import { Card, CardHeader, CardTitle } from '@/presentation/dashboard/components/ui/Card'
+import { requireReseller } from '@/lib/reseller-guard'
+import { getRsvpsByReseller } from '@/application/queries/guest.queries'
+import { Card, CardContent } from '@/components/ui/card'
 import { StatCard } from '@/presentation/dashboard/components/ui/StatCard'
 import { StatusBadge } from '@/presentation/dashboard/components/ui/Badge'
 import { EmptyState } from '@/presentation/dashboard/components/ui/EmptyState'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 import { ClipboardCheck, UserCheck, UserX, HelpCircle, Users } from 'lucide-react'
 import Link from 'next/link'
 
@@ -12,13 +14,13 @@ interface PageProps {
 }
 
 export default async function RsvpPage({ searchParams }: PageProps) {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const sp = await searchParams
   const page = Number(sp.page) || 1
   const filter = (sp.filter ?? 'ALL') as 'ALL' | 'ATTENDING' | 'NOT_ATTENDING' | 'MAYBE'
   const search = sp.search ?? ''
 
-  const { items, total, totalPages, stats } = await getRsvpsByTenant(ctx.tenantId, filter, page, 20, search)
+  const { items, total, totalPages, stats } = await getRsvpsByReseller(ctx.resellerId, filter, page, 20, search)
 
   const filters = [
     { key: 'ALL', label: 'Semua' },
@@ -30,8 +32,8 @@ export default async function RsvpPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">RSVP</h1>
-        <p className="text-sm text-slate-500 mt-1">Monitor konfirmasi kehadiran tamu.</p>
+        <h1 className="text-2xl font-bold text-foreground">RSVP</h1>
+        <p className="text-sm text-muted-foreground mt-1">Monitor konfirmasi kehadiran tamu.</p>
       </div>
 
       {/* Stats */}
@@ -43,13 +45,13 @@ export default async function RsvpPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
         {filters.map((f) => (
           <Link
             key={f.key}
             href={`/dashboard/rsvp?filter=${f.key}`}
             className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              filter === f.key ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              filter === f.key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {f.label}
@@ -59,49 +61,49 @@ export default async function RsvpPage({ searchParams }: PageProps) {
 
       {items.length === 0 ? (
         <Card>
-          <EmptyState icon={ClipboardCheck} title="Belum ada RSVP" description="Tamu belum mengisi konfirmasi kehadiran." />
+          <CardContent className="pt-6">
+            <EmptyState icon={ClipboardCheck} title="Belum ada RSVP" description="Tamu belum mengisi konfirmasi kehadiran." />
+          </CardContent>
         </Card>
       ) : (
-        <Card padding={false}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Nama Tamu</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Status</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Jumlah</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Undangan</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Pesan</th>
-                  <th className="text-left font-medium text-slate-500 px-6 py-3">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {items.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-medium text-slate-800">{r.guestName}</td>
-                    <td className="px-6 py-4"><StatusBadge status={r.attendance} /></td>
-                    <td className="px-6 py-4 text-slate-600">{r.totalGuest} orang</td>
-                    <td className="px-6 py-4 text-xs text-slate-500">{r.weddingTitle}</td>
-                    <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">{r.message || '-'}</td>
-                    <td className="px-6 py-4 text-xs text-slate-400">
-                      {new Date(r.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="rounded-md border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama Tamu</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Jumlah</TableHead>
+                <TableHead>Undangan</TableHead>
+                <TableHead>Pesan</TableHead>
+                <TableHead>Tanggal</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.guestName}</TableCell>
+                  <TableCell><StatusBadge status={r.attendance} /></TableCell>
+                  <TableCell className="text-muted-foreground">{r.totalGuest} orang</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{r.weddingTitle}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">{r.message || '-'}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">
+                    {new Date(r.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100">
-              <p className="text-xs text-slate-500">Halaman {page} dari {totalPages}</p>
-              <div className="flex gap-1">
-                {page > 1 && <Link href={`/dashboard/rsvp?filter=${filter}&page=${page - 1}`} className="px-3 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50">Prev</Link>}
-                {page < totalPages && <Link href={`/dashboard/rsvp?filter=${filter}&page=${page + 1}`} className="px-3 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50">Next</Link>}
+            <div className="flex items-center justify-between px-6 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">Halaman {page} dari {totalPages}</p>
+              <div className="flex gap-2">
+                {page > 1 && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/rsvp?filter=${filter}&page=${page - 1}`}>Prev</Link></Button>}
+                {page < totalPages && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/rsvp?filter=${filter}&page=${page + 1}`}>Next</Link></Button>}
               </div>
             </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   )

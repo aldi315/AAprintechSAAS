@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/tenant-guard'
-import { getGuestsByTenant } from '@/application/queries/guest.queries'
+import { requireReseller } from '@/lib/reseller-guard'
+import { getGuestsByReseller } from '@/application/queries/guest.queries'
 
 export async function GET(request: Request) {
   try {
-    const ctx = await requireTenant()
+    const ctx = await requireReseller()
     const { searchParams } = new URL(request.url)
     const weddingId = searchParams.get('weddingId') ?? undefined
 
     // Fetch all guests (limit 1000 for export)
-    const { items } = await getGuestsByTenant(ctx.tenantId, 1, 1000, '', weddingId)
+    const { items } = await getGuestsByReseller(ctx.resellerId, 1, 1000, '', weddingId)
 
     // Generate CSV
     const header = ['Nama Tamu', 'Kode', 'Telepon', 'Status Kehadiran', 'URL Undangan']

@@ -7,7 +7,7 @@ import { readdir, stat, mkdir } from 'fs/promises'
 import path from 'path'
 
 export interface AdminSystemStats {
-  tenantCount: number
+  resellerCount: number
   weddingCount: number
   rsvpCount: number
   activeSubscriptions: number
@@ -15,8 +15,8 @@ export interface AdminSystemStats {
 }
 
 export async function getAdminSystemStats(): Promise<AdminSystemStats> {
-  const [tenantCount, weddingCount, rsvpCount, subscriptions, payments] = await Promise.all([
-    (prisma as any).tenant.count(),
+  const [resellerCount, weddingCount, rsvpCount, subscriptions, payments] = await Promise.all([
+    (prisma as any).reseller.count(),
     (prisma as any).wedding.count(),
     (prisma as any).rSVP.count(),
     (prisma as any).subscription.count({ where: { paymentStatus: 'PAID' } }),
@@ -26,7 +26,7 @@ export async function getAdminSystemStats(): Promise<AdminSystemStats> {
   const totalRevenue = payments.reduce((acc: number, p: any) => acc + Number(p.amount), 0)
 
   return {
-    tenantCount,
+    resellerCount,
     weddingCount,
     rsvpCount,
     activeSubscriptions: subscriptions,
@@ -34,8 +34,8 @@ export async function getAdminSystemStats(): Promise<AdminSystemStats> {
   }
 }
 
-export async function getAllTenants() {
-  return (prisma as any).tenant.findMany({
+export async function getAllResellers() {
+  return (prisma as any).reseller.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       owner: { select: { email: true, name: true, role: true } },
@@ -50,7 +50,7 @@ export async function getAllPayments() {
   return (prisma as any).payment.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      tenant: { select: { businessName: true, owner: { select: { email: true } } } }
+      reseller: { select: { businessName: true, owner: { select: { email: true } } } }
     },
     take: 100
   })
@@ -80,7 +80,7 @@ export async function getAllMedia() {
   return (prisma as any).media.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      tenant: { select: { businessName: true } }
+      reseller: { select: { businessName: true } }
     },
     take: 100
   })
@@ -90,7 +90,7 @@ export async function getGlobalActivityLogs() {
   return (prisma as any).activityLog.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      tenant: { select: { businessName: true } }
+      reseller: { select: { businessName: true } }
     },
     take: 100
   })
@@ -100,7 +100,7 @@ export async function getAllWeddings() {
   return (prisma as any).wedding.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      tenant: { select: { businessName: true } },
+      reseller: { select: { businessName: true } },
       template: { select: { name: true } },
       _count: {
         select: { guests: true, rsvps: true }
@@ -113,7 +113,7 @@ export async function getWeddingDetails(id: string) {
   return (prisma as any).wedding.findUnique({
     where: { id },
     include: {
-      tenant: { select: { businessName: true } },
+      reseller: { select: { businessName: true } },
       template: { select: { name: true } }
     }
   })
@@ -141,7 +141,7 @@ export async function getAllUsers() {
     orderBy: { createdAt: 'desc' },
     include: {
       _count: {
-        select: { ownedTenants: true }
+        select: { ownedResellers: true }
       }
     }
   })
@@ -167,14 +167,14 @@ export async function getLocalUploadsAsMedia() {
         
         return {
           id: `local-${filename}`,
-          tenantId: 'system',
+          resellerId: 'system',
           weddingId: null,
           provider: 'local',
           fileUrl: `/uploads/${filename}`,
           fileType: fileType,
           size: fileStat.size,
           createdAt: fileStat.mtime,
-          tenant: { businessName: 'System (Local)' }
+          reseller: { businessName: 'System (Local)' }
         }
       })
     )

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 export async function createUser(data: {
   name: string
   email: string
-  role: 'SUPER_ADMIN' | 'TENANT'
+  role: 'SUPER_ADMIN' | 'RESELLER'
 }) {
   try {
     const user = await prisma.user.create({
@@ -28,7 +28,7 @@ export async function createUser(data: {
 export async function updateUser(id: string, data: {
   name: string
   email: string
-  role: 'SUPER_ADMIN' | 'TENANT'
+  role: 'SUPER_ADMIN' | 'RESELLER'
 }) {
   try {
     const user = await prisma.user.update({
@@ -59,7 +59,7 @@ export async function deleteUser(id: string) {
   } catch (error: any) {
     console.error('Error deleting user:', error)
     if (error.code === 'P2003') {
-      return { success: false, error: 'Gagal menghapus: User ini memiliki Tenant yang masih aktif.' }
+      return { success: false, error: 'Gagal menghapus: User ini memiliki Reseller yang masih aktif.' }
     }
     return { success: false, error: error.message || 'Failed to delete user' }
   }

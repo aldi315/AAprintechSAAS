@@ -7,7 +7,7 @@ export async function createTemplate(data: {
   name: string
   categoryId: string
   previewImage: string
-  premium: boolean
+  price: number
   active: boolean
 }) {
   try {
@@ -16,7 +16,7 @@ export async function createTemplate(data: {
         name: data.name,
         categoryId: data.categoryId,
         previewImage: data.previewImage || null,
-        premium: data.premium,
+        price: data.price || 0,
         active: data.active,
         themeConfig: {} // Default empty JSON for now
       }
@@ -34,7 +34,7 @@ export async function updateTemplate(id: string, data: {
   name: string
   categoryId: string
   previewImage: string
-  premium: boolean
+  price: number
   active: boolean
 }) {
   try {
@@ -44,7 +44,7 @@ export async function updateTemplate(id: string, data: {
         name: data.name,
         categoryId: data.categoryId,
         previewImage: data.previewImage || null,
-        premium: data.premium,
+        price: data.price || 0,
         active: data.active
       }
     })

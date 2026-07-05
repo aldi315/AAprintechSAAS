@@ -8,8 +8,8 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
-import { createTenantPrisma } from '@/infrastructure/database/tenant-prisma'
-import type { TenantContext } from '@/lib/tenant-context'
+import { createResellerPrisma } from '@/infrastructure/database/reseller-prisma'
+import type { ResellerContext } from '@/lib/reseller-context'
 
 // ─── Test Prisma (base — soft-delete extension saja) ─────────────────────────
 
@@ -50,26 +50,26 @@ export async function disconnectTestPrisma() {
   if (pool) await pool.end()
 }
 
-// ─── Tenant-scoped client untuk test ─────────────────────────────────────────
+// ─── Reseller-scoped client untuk test ─────────────────────────────────────────
 
-export function getTenantClient(tenantId: string) {
-  return createTenantPrisma(tenantId)
+export function getResellerClient(resellerId: string) {
+  return createResellerPrisma(resellerId)
 }
 
 // ─── Test data factories ──────────────────────────────────────────────────────
 
-export interface TestTenant {
+export interface TestReseller {
   userId: string
-  tenantId: string
-  tenantSlug: string
-  ctx: TenantContext
+  resellerId: string
+  resellerSlug: string
+  ctx: ResellerContext
 }
 
 /**
- * Buat user + tenant untuk kebutuhan test.
+ * Buat user + reseller untuk kebutuhan test.
  * Gunakan prefix unik agar tidak collision antar test run.
  */
-export async function createTestTenant(slug: string): Promise<TestTenant> {
+export async function createTestReseller(slug: string): Promise<TestReseller> {
   const db = getTestPrisma()
   const hashedPw = await bcrypt.hash('TestPass@123', 4) // cost 4 — cepat untuk test
 
@@ -79,11 +79,11 @@ export async function createTestTenant(slug: string): Promise<TestTenant> {
         name: `Test User ${slug}`,
         email: `${slug}@test.local`,
         password: hashedPw,
-        role: 'TENANT',
+        role: 'RESELLER',
       },
     })
 
-    const tenant = await tx.tenant.create({
+    const reseller = await (tx as any).reseller.create({
       data: {
         businessName: `Business ${slug}`,
         slug,
@@ -92,21 +92,21 @@ export async function createTestTenant(slug: string): Promise<TestTenant> {
       },
     })
 
-    return { user, tenant }
+    return { user, reseller }
   })
 
-  const ctx: TenantContext = {
-    tenantId: result.tenant.id,
-    tenantSlug: result.tenant.slug,
+  const ctx: ResellerContext = {
+    resellerId: result.reseller.id,
+    resellerSlug: result.reseller.slug,
     userId: result.user.id,
-    role: 'TENANT',
+    role: 'RESELLER',
     isSuperAdmin: false,
   }
 
   return {
     userId: result.user.id,
-    tenantId: result.tenant.id,
-    tenantSlug: result.tenant.slug,
+    resellerId: result.reseller.id,
+    resellerSlug: result.reseller.slug,
     ctx,
   }
 }
@@ -124,7 +124,12 @@ export async function getOrCreateTestTemplate(): Promise<string> {
   const template = await (db as any).template.create({
     data: {
       name: 'Test Template',
-      category: 'Test',
+      category: {
+        connectOrCreate: {
+          where: { slug: 'test' },
+          create: { name: 'Test', slug: 'test' },
+        },
+      },
       themeConfig: {},
       premium: false,
       active: true,
@@ -137,11 +142,11 @@ export async function getOrCreateTestTemplate(): Promise<string> {
  * Buat wedding untuk tenant tertentu menggunakan base prisma (tanpa isolation extension)
  * agar test bisa setup data lintas tenant.
  */
-export async function createTestWedding(tenantId: string, templateId: string, slugSuffix: string) {
+export async function createTestWedding(resellerId: string, templateId: string, slugSuffix: string) {
   const db = getTestPrisma()
   return (db as any).wedding.create({
     data: {
-      tenantId,
+      resellerId,
       slug: `wedding-${slugSuffix}`,
       brideName: 'Bride Test',
       groomName: 'Groom Test',
@@ -158,30 +163,30 @@ export async function createTestWedding(tenantId: string, templateId: string, sl
  */
 export async function cleanupTestData(slugPrefixes: string[]) {
   const rawPool = new Pool({
-    connectionString: process.env.DATABASE_URL ?? 'postgresql://postgres:admin@localhost:5432/invit?schema=public',
+    connectionString: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/invit_db?schema=public',
   })
   const rawAdapter = new PrismaPg(rawPool)
   const rawPrisma = new PrismaClient({ adapter: rawAdapter })
 
   try {
-    // Cari semua tenant yang akan dihapus (slug bisa berupa prefix)
-    const tenants = await rawPrisma.tenant.findMany({
+    // Cari semua reseller yang akan dihapus (slug bisa berupa prefix)
+    const resellers = await (rawPrisma as any).reseller.findMany({
       where: { slug: { in: slugPrefixes } },
       select: { id: true },
     })
     // Juga cari yang dimulai dengan prefix (untuk handle timestamp-suffixed slugs)
-    const tenantsWithPrefix = await rawPrisma.tenant.findMany({
+    const resellersWithPrefix = await (rawPrisma as any).reseller.findMany({
       where: {
         OR: slugPrefixes.map((p) => ({ slug: { startsWith: p } })),
       },
       select: { id: true },
     })
-    const tenantIds = [...new Set([...tenants, ...tenantsWithPrefix].map((t) => t.id))]
+    const resellerIds = [...new Set([...resellers, ...resellersWithPrefix].map((t) => t.id))]
 
-    if (tenantIds.length > 0) {
+    if (resellerIds.length > 0) {
       // 1. Hapus nested data (WeddingEvent → via Wedding)
       const weddings = await rawPrisma.wedding.findMany({
-        where: { tenantId: { in: tenantIds } },
+        where: { resellerId: { in: resellerIds } },
         select: { id: true },
       })
       const weddingIds = weddings.map((w) => w.id)
@@ -192,18 +197,18 @@ export async function cleanupTestData(slugPrefixes: string[]) {
         await rawPrisma.invitationGuest.deleteMany({ where: { weddingId: { in: weddingIds } } })
       }
 
-      // 2. Hapus semua data langsung di bawah tenant
-      await rawPrisma.wedding.deleteMany({ where: { tenantId: { in: tenantIds } } })
-      await rawPrisma.subscription.deleteMany({ where: { tenantId: { in: tenantIds } } })
-      await rawPrisma.payment.deleteMany({ where: { tenantId: { in: tenantIds } } })
-      await rawPrisma.media.deleteMany({ where: { tenantId: { in: tenantIds } } })
-      await rawPrisma.activityLog.deleteMany({ where: { tenantId: { in: tenantIds } } })
+      // 2. Hapus semua data langsung di bawah reseller
+      await rawPrisma.wedding.deleteMany({ where: { resellerId: { in: resellerIds } } })
+      await rawPrisma.subscription.deleteMany({ where: { resellerId: { in: resellerIds } } })
+      await rawPrisma.payment.deleteMany({ where: { resellerId: { in: resellerIds } } })
+      await rawPrisma.media.deleteMany({ where: { resellerId: { in: resellerIds } } })
+      await rawPrisma.activityLog.deleteMany({ where: { resellerId: { in: resellerIds } } })
 
-      // 3. Hapus tenant
-      await rawPrisma.tenant.deleteMany({ where: { id: { in: tenantIds } } })
+      // 3. Hapus reseller
+      await (rawPrisma as any).reseller.deleteMany({ where: { id: { in: resellerIds } } })
     }
 
-    // 4. Cari sisa tenant yang mungkin masih ada (dari run sebelumnya)
+    // 4. Cari sisa reseller yang mungkin masih ada (dari run sebelumnya)
     //    yang owner-nya adalah user test
     const testUsers = await rawPrisma.user.findMany({
       where: { email: { endsWith: '@test.local' } },
@@ -212,17 +217,17 @@ export async function cleanupTestData(slugPrefixes: string[]) {
     const testUserIds = testUsers.map((u) => u.id)
 
     if (testUserIds.length > 0) {
-      // Cari tenant tambahan yang ownerId-nya user test
-      const remainingTenants = await rawPrisma.tenant.findMany({
+      // Cari reseller tambahan yang ownerId-nya user test
+      const remainingResellers = await (rawPrisma as any).reseller.findMany({
         where: { ownerId: { in: testUserIds } },
         select: { id: true },
       })
-      const remainingTenantIds = remainingTenants.map((t) => t.id)
+      const remainingResellerIds = remainingResellers.map((t) => t.id)
 
-      if (remainingTenantIds.length > 0) {
-        // Hapus child data dari remaining tenants
+      if (remainingResellerIds.length > 0) {
+        // Hapus child data dari remaining resellers
         const remainingWeddings = await rawPrisma.wedding.findMany({
-          where: { tenantId: { in: remainingTenantIds } },
+          where: { resellerId: { in: remainingResellerIds } },
           select: { id: true },
         })
         const remainingWeddingIds = remainingWeddings.map((w) => w.id)
@@ -231,15 +236,15 @@ export async function cleanupTestData(slugPrefixes: string[]) {
           await rawPrisma.invitationGuest.deleteMany({ where: { weddingId: { in: remainingWeddingIds } } })
           await rawPrisma.rSVP.deleteMany({ where: { weddingId: { in: remainingWeddingIds } } })
         }
-        await rawPrisma.wedding.deleteMany({ where: { tenantId: { in: remainingTenantIds } } })
-        await rawPrisma.activityLog.deleteMany({ where: { tenantId: { in: remainingTenantIds } } })
-        await rawPrisma.media.deleteMany({ where: { tenantId: { in: remainingTenantIds } } })
-        await rawPrisma.subscription.deleteMany({ where: { tenantId: { in: remainingTenantIds } } })
-        await rawPrisma.payment.deleteMany({ where: { tenantId: { in: remainingTenantIds } } })
-        await rawPrisma.tenant.deleteMany({ where: { id: { in: remainingTenantIds } } })
+        await rawPrisma.wedding.deleteMany({ where: { resellerId: { in: remainingResellerIds } } })
+        await rawPrisma.activityLog.deleteMany({ where: { resellerId: { in: remainingResellerIds } } })
+        await rawPrisma.media.deleteMany({ where: { resellerId: { in: remainingResellerIds } } })
+        await rawPrisma.subscription.deleteMany({ where: { resellerId: { in: remainingResellerIds } } })
+        await rawPrisma.payment.deleteMany({ where: { resellerId: { in: remainingResellerIds } } })
+        await (rawPrisma as any).reseller.deleteMany({ where: { id: { in: remainingResellerIds } } })
       }
 
-      // Hapus users setelah semua tenant terhapus
+      // Hapus users setelah semua reseller terhapus
       await rawPrisma.user.deleteMany({ where: { id: { in: testUserIds } } })
     }
   } finally {

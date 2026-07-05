@@ -38,7 +38,7 @@ export async function requireAuth(): Promise<AuthenticatedSession> {
  * Redirect ke /unauthorized jika role tidak sesuai.
  */
 export async function requireRole(
-  allowedRoles: Array<'SUPER_ADMIN' | 'TENANT'>,
+  allowedRoles: Array<'SUPER_ADMIN' | 'RESELLER'>,
 ): Promise<AuthenticatedSession> {
   const session = await requireAuth()
   if (!allowedRoles.includes(session.user.role)) {
@@ -55,13 +55,13 @@ export async function requireSuperAdmin(): Promise<AuthenticatedSession> {
 }
 
 /**
- * Khusus untuk Tenant pages.
- * Juga memastikan tenantId tersedia di session.
+ * Khusus untuk Reseller pages.
+ * Juga memastikan resellerId tersedia di session.
  */
-export async function requireTenant(): Promise<AuthenticatedSession & { user: { tenantId: string; tenantSlug: string } }> {
-  const session = await requireRole(['TENANT', 'SUPER_ADMIN'])
-  if (!session.user.tenantId) {
-    redirect('/onboarding') // Belum punya tenant
+export async function requireReseller(): Promise<AuthenticatedSession & { user: { resellerId: string; resellerSlug: string } }> {
+  const session = await requireRole(['RESELLER', 'SUPER_ADMIN'])
+  if (!session.user.resellerId) {
+    redirect('/onboarding') // Belum punya reseller
   }
   return session as any
 }

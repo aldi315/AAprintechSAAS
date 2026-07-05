@@ -14,6 +14,7 @@ import { parseTemplateSchema } from '@/presentation/invitation/schemas/template.
 export interface WeddingWithIncludes {
   id: string
   slug: string
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
   brideName: string
   groomName: string
   coverImage: string | null
@@ -23,6 +24,7 @@ export interface WeddingWithIncludes {
   metaTitle: string | null
   metaDescription: string | null
   ogImage: string | null
+  customConfig: unknown         // Prisma Json
   events: Array<{
     id: string
     name: string
@@ -38,7 +40,7 @@ export interface WeddingWithIncludes {
     name: string
     themeConfig: unknown         // Prisma Json
   }
-  tenant: {
+  reseller: {
     slug: string
     businessName: string
   }
@@ -61,8 +63,25 @@ export class InvitationRenderMapper {
       note: e.note,
     }))
 
-    // Parse & validate template schema (fallback ke default jika invalid)
-    const parsedSchema = parseTemplateSchema(wedding.template.themeConfig)
+    // Parse wedding customConfig overrides or snapshot
+    let customConfig: Record<string, any> | null = null
+    if (wedding.customConfig && typeof wedding.customConfig === 'object') {
+      customConfig = wedding.customConfig as Record<string, any>
+    }
+
+    // Prioritaskan customConfig sebagai konfigurasi absolut (snapshot) jika memiliki array sections.
+    // Hal ini memastikan desain undangan tidak berubah jika master template dimodifikasi di masa depan.
+    const baseConfig = (customConfig && customConfig.sections && Array.isArray(customConfig.sections))
+      ? customConfig
+      : wedding.template.themeConfig
+
+    // Parse & validate template schema
+    const parsedSchema = parseTemplateSchema(baseConfig)
+
+    // Fallback: Jika customConfig hanya berisi partial override (legacy data), merge theme secara manual
+    if (customConfig && customConfig.theme && baseConfig === wedding.template.themeConfig) {
+      parsedSchema.theme = { ...parsedSchema.theme, ...customConfig.theme }
+    }
 
     return {
       id: wedding.id,
@@ -84,9 +103,9 @@ export class InvitationRenderMapper {
         description: wedding.metaDescription,
         ogImage: wedding.ogImage,
       },
-      tenant: {
-        slug: wedding.tenant.slug,
-        businessName: wedding.tenant.businessName,
+      reseller: {
+        slug: wedding.reseller.slug,
+        businessName: wedding.reseller.businessName,
       },
     }
   }

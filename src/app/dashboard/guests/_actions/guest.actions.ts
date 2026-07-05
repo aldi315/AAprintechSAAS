@@ -3,7 +3,7 @@
  * Server Actions — Guest CRUD
  */
 import { z } from 'zod'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
@@ -21,7 +21,7 @@ function generateGuestCode(): string {
 }
 
 export async function createGuestAction(formData: FormData): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const parsed = CreateGuestSchema.safeParse({
     weddingId: formData.get('weddingId'),
     guestName: formData.get('guestName'),
@@ -34,7 +34,7 @@ export async function createGuestAction(formData: FormData): Promise<ActionResul
 
   // Verify wedding ownership
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: parsed.data.weddingId, tenantId: ctx.tenantId },
+    where: { id: parsed.data.weddingId, resellerId: ctx.resellerId },
     select: { id: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
@@ -54,10 +54,10 @@ export async function createGuestAction(formData: FormData): Promise<ActionResul
 }
 
 export async function deleteGuestAction(guestId: string): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
 
   const guest = await (prisma as any).invitationGuest.findFirst({
-    where: { id: guestId, wedding: { tenantId: ctx.tenantId } },
+    where: { id: guestId, wedding: { resellerId: ctx.resellerId } },
     select: { id: true },
   })
   if (!guest) return { success: false, error: 'Tamu tidak ditemukan.' }

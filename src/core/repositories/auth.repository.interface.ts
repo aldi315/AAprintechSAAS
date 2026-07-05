@@ -25,7 +25,7 @@ export interface IAuthRepository {
     name: string
     email: string
     hashedPassword: string
-    role?: 'SUPER_ADMIN' | 'TENANT'
+    role?: 'SUPER_ADMIN' | 'RESELLER'
   }): Promise<UserEntity>
 
   /**
@@ -34,17 +34,17 @@ export interface IAuthRepository {
   isEmailTaken(email: string): Promise<boolean>
 
   /**
-   * Buat User + Tenant dalam satu atomic transaction.
+   * Buat User + Reseller dalam satu atomic transaction.
    * Encapsulate Prisma $transaction di infrastructure layer,
    * sehingga use case tetap bersih tanpa import Prisma.
    */
-  createUserWithTenant(data: {
+  createUserWithReseller(data: {
     name: string
     email: string
     hashedPassword: string
     businessName: string
     slug: string
-  }): Promise<{ userId: string; tenantId: string; tenantSlug: string }>
+  }): Promise<{ userId: string; resellerId: string; resellerSlug: string }>
 
   /**
    * Ambil AuthUser lengkap dengan tenant info.

@@ -1,16 +1,16 @@
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { getDashboardStats, getRecentRsvps } from '@/application/queries/dashboard.queries'
 import { StatCard } from '@/presentation/dashboard/components/ui/StatCard'
-import { Card, CardHeader, CardTitle } from '@/presentation/dashboard/components/ui/Card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/presentation/dashboard/components/ui/Badge'
 import { Heart, Users, ClipboardCheck, TrendingUp, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function DashboardHomePage() {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const [stats, recentRsvps] = await Promise.all([
-    getDashboardStats(ctx.tenantId),
-    getRecentRsvps(ctx.tenantId, 5),
+    getDashboardStats(ctx.resellerId),
+    getRecentRsvps(ctx.resellerId, 5),
   ])
 
   return (
@@ -32,11 +32,11 @@ export default async function DashboardHomePage() {
 
       {/* Recent RSVP */}
       <Card>
-        <CardHeader>
-          <CardTitle>RSVP Terbaru</CardTitle>
-          <Link href="/dashboard/rsvp" className="text-sm text-[#C8A882] hover:underline">Lihat semua →</Link>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg">RSVP Terbaru</CardTitle>
+          <Link href="/dashboard/rsvp" className="text-sm text-primary hover:underline">Lihat semua →</Link>
         </CardHeader>
-        <div className="mt-4">
+        <CardContent>
           {recentRsvps.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-8">Belum ada RSVP.</p>
           ) : (
@@ -57,25 +57,25 @@ export default async function DashboardHomePage() {
               ))}
             </div>
           )}
-        </div>
+        </CardContent>
       </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Link href="/dashboard/weddings/new" className="bg-white rounded-xl border border-slate-200 p-5 hover:border-[#C8A882] hover:shadow-sm transition-all group">
-          <Heart className="w-8 h-8 text-[#C8A882] mb-3" />
-          <h3 className="font-semibold text-slate-800 group-hover:text-[#C8A882] transition-colors">Buat Undangan Baru</h3>
-          <p className="text-xs text-slate-500 mt-1">Mulai buat undangan pernikahan digital</p>
+        <Link href="/dashboard/weddings/new" className="bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-sm transition-all group">
+          <Heart className="w-8 h-8 text-primary mb-3" />
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Buat Undangan Baru</h3>
+          <p className="text-xs text-muted-foreground mt-1">Mulai buat undangan pernikahan digital</p>
         </Link>
-        <Link href="/dashboard/guests" className="bg-white rounded-xl border border-slate-200 p-5 hover:border-[#C8A882] hover:shadow-sm transition-all group">
-          <Users className="w-8 h-8 text-[#C8A882] mb-3" />
-          <h3 className="font-semibold text-slate-800 group-hover:text-[#C8A882] transition-colors">Kelola Tamu</h3>
-          <p className="text-xs text-slate-500 mt-1">Tambah dan kelola daftar tamu undangan</p>
+        <Link href="/dashboard/guests" className="bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-sm transition-all group">
+          <Users className="w-8 h-8 text-primary mb-3" />
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Kelola Tamu</h3>
+          <p className="text-xs text-muted-foreground mt-1">Tambah dan kelola daftar tamu undangan</p>
         </Link>
-        <Link href="/dashboard/rsvp" className="bg-white rounded-xl border border-slate-200 p-5 hover:border-[#C8A882] hover:shadow-sm transition-all group">
-          <Eye className="w-8 h-8 text-[#C8A882] mb-3" />
-          <h3 className="font-semibold text-slate-800 group-hover:text-[#C8A882] transition-colors">Lihat RSVP</h3>
-          <p className="text-xs text-slate-500 mt-1">Monitor konfirmasi kehadiran tamu</p>
+        <Link href="/dashboard/rsvp" className="bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-sm transition-all group">
+          <Eye className="w-8 h-8 text-primary mb-3" />
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Lihat RSVP</h3>
+          <p className="text-xs text-muted-foreground mt-1">Monitor konfirmasi kehadiran tamu</p>
         </Link>
       </div>
     </div>

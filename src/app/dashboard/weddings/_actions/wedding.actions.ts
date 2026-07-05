@@ -1,10 +1,10 @@
 'use server'
 /**
  * Server Actions — Wedding CRUD
- * Tenant-safe via requireTenant() + tenant-scoped Prisma.
+ * Tenant-safe via requireReseller() + tenant-scoped Prisma.
  */
 import { z } from 'zod'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
@@ -36,7 +36,7 @@ interface ActionResult {
 }
 
 export async function createWeddingAction(formData: FormData): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
 
   const parsed = CreateWeddingSchema.safeParse({
     brideName: formData.get('brideName'),
@@ -58,7 +58,7 @@ export async function createWeddingAction(formData: FormData): Promise<ActionRes
 
   const wedding = await (prisma as any).wedding.create({
     data: {
-      tenantId: ctx.tenantId,
+      resellerId: ctx.resellerId,
       brideName,
       groomName,
       slug,
@@ -73,11 +73,11 @@ export async function createWeddingAction(formData: FormData): Promise<ActionRes
 }
 
 export async function updateWeddingAction(weddingId: string, formData: FormData): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
 
   // Verify ownership
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId: ctx.tenantId },
+    where: { id: weddingId, resellerId: ctx.resellerId },
     select: { id: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
@@ -109,9 +109,9 @@ export async function updateWeddingAction(weddingId: string, formData: FormData)
 }
 
 export async function deleteWeddingAction(weddingId: string): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId: ctx.tenantId },
+    where: { id: weddingId, resellerId: ctx.resellerId },
     select: { id: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
@@ -122,9 +122,9 @@ export async function deleteWeddingAction(weddingId: string): Promise<ActionResu
 }
 
 export async function togglePublishAction(weddingId: string): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId: ctx.tenantId },
+    where: { id: weddingId, resellerId: ctx.resellerId },
     select: { id: true, status: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }

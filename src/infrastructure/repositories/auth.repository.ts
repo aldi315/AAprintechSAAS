@@ -25,14 +25,14 @@ export class PrismaAuthRepository implements IAuthRepository {
     name: string
     email: string
     hashedPassword: string
-    role?: 'SUPER_ADMIN' | 'TENANT'
+    role?: 'SUPER_ADMIN' | 'RESELLER'
   }): Promise<UserEntity> {
     const user = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: data.hashedPassword,
-        role: data.role ?? 'TENANT',
+        role: data.role ?? 'RESELLER',
       },
     })
     return user as UserEntity
@@ -45,26 +45,24 @@ export class PrismaAuthRepository implements IAuthRepository {
     return !!user
   }
 
-  async createUserWithTenant(data: {
+  async createUserWithReseller(data: {
     name: string
     email: string
     hashedPassword: string
     businessName: string
     slug: string
-  }): Promise<{ userId: string; tenantId: string; tenantSlug: string }> {
-    // Prisma $transaction sepenuhnya di dalam infrastructure layer
-    // Application/use-case tidak perlu tahu bahwa ini menggunakan Prisma
+  }): Promise<{ userId: string; resellerId: string; resellerSlug: string }> {
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           name: data.name,
           email: data.email,
           password: data.hashedPassword,
-          role: 'TENANT',
+          role: 'RESELLER',
         },
       })
 
-      const tenant = await tx.tenant.create({
+      const reseller = await (tx as any).reseller.create({
         data: {
           businessName: data.businessName,
           slug: data.slug,
@@ -73,13 +71,13 @@ export class PrismaAuthRepository implements IAuthRepository {
         },
       })
 
-      return { user, tenant }
+      return { user, reseller }
     })
 
     return {
       userId: result.user.id,
-      tenantId: result.tenant.id,
-      tenantSlug: result.tenant.slug,
+      resellerId: result.reseller.id,
+      resellerSlug: result.reseller.slug,
     }
   }
 
@@ -87,8 +85,8 @@ export class PrismaAuthRepository implements IAuthRepository {
     const user = await prisma.user.findFirst({
       where: { id: userId },
       include: {
-        // Ambil tenant pertama yang dimiliki user (untuk populate session)
-        ownedTenants: {
+        // Ambil reseller pertama yang dimiliki user (untuk populate session)
+        ownedResellers: {
           where: { deletedAt: null },
           orderBy: { createdAt: 'asc' },
           take: 1,
@@ -99,15 +97,15 @@ export class PrismaAuthRepository implements IAuthRepository {
 
     if (!user) return null
 
-    const firstTenant = user.ownedTenants[0] ?? null
+    const firstReseller = user.ownedResellers[0] ?? null
 
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role as AuthUser['role'],
-      tenantId: firstTenant?.id ?? null,
-      tenantSlug: firstTenant?.slug ?? null,
+      resellerId: firstReseller?.id ?? null,
+      resellerSlug: firstReseller?.slug ?? null,
     }
   }
 }

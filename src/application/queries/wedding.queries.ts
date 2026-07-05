@@ -1,5 +1,5 @@
 /**
- * APPLICATION QUERIES — Wedding Queries (tenant-scoped)
+ * APPLICATION QUERIES — Wedding Queries (reseller-scoped)
  */
 import { prisma } from '@/lib/prisma'
 
@@ -46,15 +46,15 @@ export interface WeddingDetail {
   }>
 }
 
-export async function getWeddingsByTenant(
-  tenantId: string,
+export async function getWeddingsByReseller(
+  resellerId: string,
   page = 1,
   perPage = 10,
   search = '',
 ): Promise<{ items: WeddingListItem[]; total: number; totalPages: number }> {
   const skip = (page - 1) * perPage
   const where: any = {
-    tenantId,
+    resellerId,
     ...(search ? {
       OR: [
         { brideName: { contains: search, mode: 'insensitive' } },
@@ -97,9 +97,9 @@ export async function getWeddingsByTenant(
   }
 }
 
-export async function getWeddingById(tenantId: string, weddingId: string): Promise<WeddingDetail | null> {
+export async function getWeddingById(resellerId: string, weddingId: string): Promise<WeddingDetail | null> {
   const w = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId },
+    where: { id: weddingId, resellerId },
     include: {
       template: { select: { id: true, name: true } },
       events: { orderBy: { startTime: 'asc' } },
@@ -139,7 +139,7 @@ export async function getWeddingById(tenantId: string, weddingId: string): Promi
 
 export async function getTemplateOptions() {
   return (prisma as any).template.findMany({
-    select: { id: true, name: true, category: true, premium: true },
+    select: { id: true, name: true, category: true, price: true },
     orderBy: { name: 'asc' },
   })
 }

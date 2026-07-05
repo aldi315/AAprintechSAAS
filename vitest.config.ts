@@ -17,7 +17,7 @@ export default defineConfig({
     include: ['src/__tests__/**/*.test.ts'],
     // Load env vars
     env: {
-      DATABASE_URL: 'postgresql://postgres:admin@localhost:5432/invit?schema=public',
+      DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/invit_db?schema=public',
     },
   },
 })

@@ -1,4 +1,5 @@
 import { type LucideIcon } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface AdminStatCardProps {
   title: string
@@ -13,34 +14,27 @@ interface AdminStatCardProps {
 
 export function AdminStatCard({ title, value, icon: Icon, description, trend }: AdminStatCardProps) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-slate-500">{title}</h3>
-        <div className="p-2 bg-slate-50 rounded-lg">
-          <Icon className="w-5 h-5 text-slate-600" />
-        </div>
-      </div>
-      
-      <div>
-        <div className="text-3xl font-bold text-slate-900">{value}</div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">
+          {title}
+        </CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
         
         {(description || trend) && (
-          <div className="flex items-center gap-2 mt-2">
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
             {trend && (
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  trend.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                }`}
-              >
+              <span className={trend.isPositive ? 'text-emerald-500 font-medium' : 'text-red-500 font-medium'}>
                 {trend.isPositive ? '+' : '-'}{trend.value}%
               </span>
             )}
-            {description && (
-              <span className="text-xs text-slate-500">{description}</span>
-            )}
-          </div>
+            {description && <span>{description}</span>}
+          </p>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

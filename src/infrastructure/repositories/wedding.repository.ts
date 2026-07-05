@@ -1,27 +1,27 @@
 /**
- * INFRASTRUCTURE LAYER — Wedding Repository (Tenant-Scoped)
+ * INFRASTRUCTURE LAYER — Wedding Repository (Reseller-Scoped)
  *
- * Contoh implementasi konkret dari TenantScopedRepository.
- * Semua query otomatis memfilter berdasarkan tenantId.
+ * Contoh implementasi konkret dari ResellerScopedRepository.
+ * Semua query otomatis memfilter berdasarkan resellerId.
  *
  * USAGE:
  * // Dalam Server Component / Server Action:
- * const ctx = await requireTenant()
+ * const ctx = await requireReseller()
  * const repo = new WeddingRepository(ctx)
- * const weddings = await repo.findAll()  // otomatis { where: { tenantId: ctx.tenantId } }
+ * const weddings = await repo.findAll()  // otomatis { where: { resellerId: ctx.resellerId } }
  */
-import { TenantScopedRepository } from '@/infrastructure/repositories/tenant-scoped.repository.base'
-import type { TenantContext } from '@/lib/tenant-context'
+import { ResellerScopedRepository } from '@/infrastructure/repositories/reseller-scoped.repository.base'
+import type { ResellerContext } from '@/lib/reseller-context'
 import type { WeddingStatus } from '@prisma/client'
 
-export class WeddingRepository extends TenantScopedRepository {
-  constructor(ctx: TenantContext) {
+export class WeddingRepository extends ResellerScopedRepository {
+  constructor(ctx: ResellerContext) {
     super(ctx)
   }
 
   /**
-   * Ambil semua wedding milik tenant ini (dengan soft-delete otomatis).
-   * tenantId di-inject otomatis oleh TenantScopedRepository.
+   * Ambil semua wedding milik reseller ini (dengan soft-delete otomatis).
+   * resellerId di-inject otomatis oleh ResellerScopedRepository.
    */
   async findAll(opts?: { status?: WeddingStatus; page?: number; limit?: number }) {
     const take = opts?.limit ?? 20
@@ -38,7 +38,7 @@ export class WeddingRepository extends TenantScopedRepository {
 
   /**
    * Ambil satu wedding berdasarkan slug.
-   * Jika slug bukan milik tenant ini, extension akan return null (tidak throw).
+   * Jika slug bukan milik reseller ini, extension akan return null (tidak throw).
    */
   async findBySlug(slug: string) {
     return this.db.wedding.findFirst({
@@ -65,7 +65,7 @@ export class WeddingRepository extends TenantScopedRepository {
     templateId: string
     timezone?: string
   }) {
-    // tenantId di-inject otomatis oleh TenantIsolation extension
+    // resellerId di-inject otomatis oleh ResellerIsolation extension
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.db.wedding.create({ data: data as any })
   }
@@ -83,7 +83,7 @@ export class WeddingRepository extends TenantScopedRepository {
     location: string
     mapsUrl: string
   }>) {
-    // tenantId di-inject ke WHERE oleh extension — tidak bisa update wedding tenant lain
+    // resellerId di-inject ke WHERE oleh extension — tidak bisa update wedding reseller lain
     return this.db.wedding.update({ where: { id }, data })
   }
 
@@ -107,3 +107,4 @@ export class WeddingRepository extends TenantScopedRepository {
     })
   }
 }
+

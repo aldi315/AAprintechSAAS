@@ -1,10 +1,10 @@
-import { getAllMedia, getAllTenants, getLocalUploadsAsMedia } from '@/application/queries/admin.queries'
+import { getAllMedia, getAllResellers, getLocalUploadsAsMedia } from '@/application/queries/admin.queries'
 import { AdminMediaView } from './_components/AdminMediaView'
 
 export default async function AdminMediaPage() {
-  const [mediaFiles, tenants, localMedia] = await Promise.all([
+  const [mediaFiles, resellers, localMedia] = await Promise.all([
     getAllMedia(),
-    getAllTenants(),
+    getAllResellers(),
     getLocalUploadsAsMedia()
   ])
 
@@ -12,5 +12,5 @@ export default async function AdminMediaPage() {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
 
-  return <AdminMediaView initialMedia={combinedMedia} tenants={tenants} />
+  return <AdminMediaView initialMedia={combinedMedia} resellers={resellers} />
 }

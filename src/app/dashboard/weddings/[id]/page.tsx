@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { getWeddingById, getTemplateOptions } from '@/application/queries/wedding.queries'
 import { EditWeddingForm } from './EditWeddingForm'
 
@@ -9,9 +9,9 @@ interface PageProps {
 
 export default async function EditWeddingPage({ params }: PageProps) {
   const { id } = await params
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const [wedding, templates] = await Promise.all([
-    getWeddingById(ctx.tenantId, id),
+    getWeddingById(ctx.resellerId, id),
     getTemplateOptions(),
   ])
 

@@ -41,5 +41,5 @@ export function isAuthenticated(session: Session | null): boolean {
  * Apakah user memiliki tenant aktif?
  */
 export function hasTenant(session: Session | null): boolean {
-  return !!session?.user?.tenantId
+  return !!session?.user?.resellerId
 }

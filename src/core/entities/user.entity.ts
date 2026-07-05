@@ -3,7 +3,7 @@
  * Pure TypeScript, no external dependencies.
  * Mendefinisikan shape dari User entity di domain level.
  */
-export type UserRole = 'SUPER_ADMIN' | 'TENANT'
+export type UserRole = 'SUPER_ADMIN' | 'RESELLER'
 
 export interface UserEntity {
   id: string
@@ -23,6 +23,6 @@ export interface AuthUser {
   name: string
   email: string
   role: UserRole
-  tenantId: string | null // Tenant pertama yang dimiliki user
-  tenantSlug: string | null
+  resellerId: string | null // Reseller pertama yang dimiliki user
+  resellerSlug: string | null
 }

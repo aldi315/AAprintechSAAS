@@ -24,7 +24,10 @@ const ThemeSchemaZod = z.object({
 
 const SectionSchemaZod = z.object({
   id: z.string(),
-  type: z.enum(['hero', 'couple', 'event', 'countdown', 'gallery', 'rsvp', 'closing']),
+  type: z.enum([
+    'cover', 'hero', 'couple', 'event', 'countdown', 'gallery', 'rsvp', 'closing', 'text', 'spacer', 'gift', 'music',
+    'cover_minimalist', 'hero_minimalist', 'couple_minimalist', 'event_minimalist', 'gallery_minimalist'
+  ]),
   enabled: z.boolean().default(true),
   props: z.record(z.string(), z.unknown()).default({}),
 })

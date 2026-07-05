@@ -1,7 +1,7 @@
 /**
  * INFRASTRUCTURE LAYER — NextAuth v4 Configuration (production-grade)
  *
- * Tenant-aware session: menyimpan tenantId + tenantSlug di JWT
+ * Tenant-aware session: menyimpan resellerId + resellerSlug di JWT
  * agar setiap Server Component bisa tahu context tenant tanpa query DB.
  */
 import type { NextAuthOptions } from 'next-auth'
@@ -57,9 +57,9 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role as 'SUPER_ADMIN' | 'TENANT',
-            tenantId: user.tenantId,
-            tenantSlug: user.tenantSlug,
+            role: user.role as 'SUPER_ADMIN' | 'RESELLER',
+            resellerId: user.resellerId,
+            resellerSlug: user.resellerSlug,
           }
         } catch {
           // Kembalikan null — NextAuth akan tampilkan error "CredentialsSignin"
@@ -80,8 +80,8 @@ export const authOptions: NextAuthOptions = {
         // Saat pertama login, user object tersedia
         token.id = user.id
         token.role = (user as any).role
-        token.tenantId = (user as any).tenantId ?? null
-        token.tenantSlug = (user as any).tenantSlug ?? null
+        token.resellerId = (user as any).resellerId ?? null
+        token.resellerSlug = (user as any).resellerSlug ?? null
       }
       return token
     },
@@ -93,9 +93,9 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as 'SUPER_ADMIN' | 'TENANT'
-        session.user.tenantId = (token.tenantId as string | null) ?? null
-        session.user.tenantSlug = (token.tenantSlug as string | null) ?? null
+        session.user.role = token.role as 'SUPER_ADMIN' | 'RESELLER'
+        session.user.resellerId = (token.resellerId as string | null) ?? null
+        session.user.resellerSlug = (token.resellerSlug as string | null) ?? null
       }
       return session
     },

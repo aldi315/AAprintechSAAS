@@ -34,7 +34,7 @@ const plans = [
     btnText: 'Pilih Premium',
   },
   {
-    name: 'Tenant / Vendor',
+    name: 'Reseller / Vendor',
     price: 'Hubungi Kami',
     description: 'Untuk bisnis undangan & Event Organizer.',
     features: [

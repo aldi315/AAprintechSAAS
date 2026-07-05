@@ -35,7 +35,7 @@ export class LoginUseCase {
       throw new InvalidCredentialsError()
     }
 
-    // 5. Ambil auth user lengkap (dengan tenant info)
+    // 5. Ambil auth user lengkap (dengan reseller info)
     const authUser = await this.authRepository.getAuthUser(user.id)
     if (!authUser) {
       throw new InvalidCredentialsError()

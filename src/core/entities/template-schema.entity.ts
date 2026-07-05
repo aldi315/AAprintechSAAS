@@ -33,6 +33,8 @@ export interface ThemeSchema {
 // ─── Section Types ─────────────────────────────────────────────────────────────
 
 export type SectionType =
+  // Base / Floral Garden
+  | 'cover'
   | 'hero'
   | 'couple'
   | 'event'
@@ -40,6 +42,16 @@ export type SectionType =
   | 'gallery'
   | 'rsvp'
   | 'closing'
+  | 'text'
+  | 'spacer'
+  | 'gift'
+  | 'music'
+  // Modern Minimalist
+  | 'cover_minimalist'
+  | 'hero_minimalist'
+  | 'couple_minimalist'
+  | 'event_minimalist'
+  | 'gallery_minimalist'
 
 // ─── Section Props — per-section configuration ─────────────────────────────────
 

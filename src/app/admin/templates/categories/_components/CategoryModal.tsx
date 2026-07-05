@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useAlert } from '@/presentation/components/ui/AlertProvider'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 interface CategoryModalProps {
   isOpen: boolean
@@ -53,68 +57,49 @@ export function CategoryModal({ isOpen, onClose, onSave, initialData }: Category
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
             {initialData ? 'Edit Kategori' : 'Tambah Kategori'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-700 block">Nama Kategori</label>
-            <input
+        <form id="category-form" onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Nama Kategori</Label>
+            <Input
               required
               type="text"
               value={name}
               onChange={handleNameChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
               placeholder="e.g. Minimalist"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-700 block">Slug</label>
-            <input
+          <div className="space-y-2">
+            <Label>Slug</Label>
+            <Input
               required
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
               placeholder="e.g. minimalist"
             />
-            <p className="text-xs text-slate-500">Unik dan tanpa spasi, digunakan untuk URL jika diperlukan.</p>
-          </div>
-
-          <div className="pt-6 flex justify-end gap-3 border-t border-slate-100 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {initialData ? 'Simpan Perubahan' : 'Buat Kategori'}
-            </button>
+            <p className="text-[0.8rem] text-muted-foreground">Unik dan tanpa spasi, digunakan untuk URL jika diperlukan.</p>
           </div>
         </form>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            Batal
+          </Button>
+          <Button type="submit" form="category-form" disabled={loading}>
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {initialData ? 'Simpan Perubahan' : 'Buat Kategori'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

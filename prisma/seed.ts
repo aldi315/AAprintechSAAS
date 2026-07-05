@@ -109,20 +109,20 @@ async function main() {
     }
   }
 
-  // ─── Demo Tenant & User (untuk sample wedding) ────────────────────────────
+  // ─── Demo Reseller & User (untuk sample wedding) ────────────────────────────
   const demoEmail = 'demo@aaprintech.com'
   let demoUser = await prisma.user.findFirst({ where: { email: demoEmail } })
   if (!demoUser) {
     const hashedPw = await bcrypt.hash('Demo@123456', 12)
     demoUser = await prisma.user.create({
-      data: { name: 'Demo Tenant', email: demoEmail, password: hashedPw, role: 'TENANT' },
+      data: { name: 'Demo Reseller', email: demoEmail, password: hashedPw, role: 'RESELLER' },
     })
     console.log(`✅ Demo user created: ${demoEmail}`)
   }
 
-  let demoTenant = await prisma.tenant.findFirst({ where: { slug: 'demo-aaprintech' } })
-  if (!demoTenant) {
-    demoTenant = await prisma.tenant.create({
+  let demoReseller = await (prisma as any).reseller.findFirst({ where: { slug: 'demo-aaprintech' } })
+  if (!demoReseller) {
+    demoReseller = await (prisma as any).reseller.create({
       data: {
         businessName: 'AAP Wedding',
         slug: 'demo-aaprintech',
@@ -131,7 +131,7 @@ async function main() {
         settings: { brandColor: '#C8A882', logo: null },
       },
     })
-    console.log(`✅ Demo tenant created: demo-aaprintech`)
+    console.log(`✅ Demo reseller created: demo-aaprintech`)
   }
 
   // ─── Sample Published Wedding: andi-sinta ────────────────────────────────
@@ -141,7 +141,7 @@ async function main() {
   if (!existingWedding && elegantRoseTemplate) {
     const wedding = await prisma.wedding.create({
       data: {
-        tenantId: demoTenant.id,
+        resellerId: demoReseller.id,
         slug: weddingSlug,
         brideName: 'Sinta Maharani',
         groomName: 'Andi Pratama',

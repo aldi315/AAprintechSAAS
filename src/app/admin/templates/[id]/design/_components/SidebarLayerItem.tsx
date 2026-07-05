@@ -67,25 +67,25 @@ export function SidebarLayerItem({ section, isActive, onClick, onDelete, onDupli
       onClick={onClick}
       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all relative ${
         isActive 
-          ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
-          : 'bg-white border-slate-200 hover:border-slate-300'
+          ? 'bg-primary/10 border-primary/30 shadow-sm' 
+          : 'bg-card border-border hover:border-muted-foreground/30'
       }`}
     >
       <div 
         {...attributes} 
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-1 -ml-1 rounded"
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-1 -ml-1 rounded"
         onClick={(e) => e.stopPropagation()} // Prevent click when dragging
       >
         <GripVertical className="w-4 h-4" />
       </div>
       
-      <div className={`p-1.5 rounded-md ${isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+      <div className={`p-1.5 rounded-md ${isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
         {widgetConfig ? (ICONS[widgetConfig.icon] || <LayoutGrid className="w-4 h-4" />) : <LayoutGrid className="w-4 h-4" />}
       </div>
       
       <div className="flex-1 overflow-hidden">
-        <p className={`text-sm font-medium truncate ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
+        <p className={`text-sm font-medium truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
           {widgetConfig?.name || section.type}
         </p>
       </div>
@@ -93,19 +93,19 @@ export function SidebarLayerItem({ section, isActive, onClick, onDelete, onDupli
       <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
         <button 
           onClick={() => setShowMenu(!showMenu)}
-          className="p-1.5 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+          className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <MoreVertical className="w-4 h-4" />
         </button>
 
         {showMenu && (
-          <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[100]">
+          <div className="absolute right-0 top-full mt-1 w-36 bg-popover rounded-lg shadow-lg border border-border py-1 z-[100]">
             <button
               onClick={() => {
                 onDuplicate()
                 setShowMenu(false)
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-muted hover:text-primary transition-colors"
             >
               <Copy className="w-4 h-4" />
               Duplicate
@@ -115,7 +115,7 @@ export function SidebarLayerItem({ section, isActive, onClick, onDelete, onDupli
                 onDelete()
                 setShowMenu(false)
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Delete

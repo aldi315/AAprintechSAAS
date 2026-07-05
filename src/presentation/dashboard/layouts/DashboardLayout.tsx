@@ -1,39 +1,26 @@
 'use client'
-import { useState } from 'react'
-import { Sidebar } from './Sidebar'
-import { Topbar } from './Topbar'
-import { MobileNav } from './MobileNav'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { Sidebar as DashboardSidebar } from './Sidebar'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
   userName?: string
   userEmail?: string
-  tenantName?: string
+  resellerName?: string
   pageTitle?: string
 }
 
-export function DashboardLayout({ children, userName, userEmail, tenantName, pageTitle }: DashboardLayoutProps) {
-  const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-
+export function DashboardLayout({ children, userName, userEmail, resellerName, pageTitle }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Desktop sidebar */}
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} tenantName={tenantName} />
+    <SidebarProvider>
+      <DashboardSidebar resellerName={resellerName} userName={userName} userEmail={userEmail} />
 
-      {/* Mobile nav */}
-      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} tenantName={tenantName} />
-
-      {/* Main content */}
-      <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]'}`}>
-        <Topbar
-          onMenuToggle={() => setMobileOpen(true)}
-          userName={userName}
-          userEmail={userEmail}
-          pageTitle={pageTitle}
-        />
-        <main className="p-4 lg:p-6">{children}</main>
-      </div>
-    </div>
+      <SidebarInset>
+        <SidebarTrigger className="lg:hidden fixed top-4 left-4 z-50 bg-background shadow-sm border rounded-md" />
+        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-8 pt-16 lg:pt-8">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -1,10 +1,10 @@
-import { requireTenant } from '@/lib/tenant-guard'
-import { getWeddingsByTenant } from '@/application/queries/wedding.queries'
+import { requireReseller } from '@/lib/reseller-guard'
+import { getWeddingsByReseller } from '@/application/queries/wedding.queries'
 import { CreateGuestForm } from './CreateGuestForm'
 
 export default async function NewGuestPage() {
-  const ctx = await requireTenant()
-  const { items: weddings } = await getWeddingsByTenant(ctx.tenantId, 1, 100)
+  const ctx = await requireReseller()
+  const { items: weddings } = await getWeddingsByReseller(ctx.resellerId, 1, 100)
 
   return (
     <div className="max-w-lg space-y-6">

@@ -4,7 +4,7 @@
  * Update template sections + theme pada wedding's template themeConfig.
  */
 import { z } from 'zod'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
@@ -35,7 +35,7 @@ const UpdateSchemaInput = z.object({
 interface ActionResult { success: boolean; error?: string }
 
 export async function updateSchemaAction(input: z.infer<typeof UpdateSchemaInput>): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
   const parsed = UpdateSchemaInput.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Input tidak valid.' }
@@ -45,7 +45,7 @@ export async function updateSchemaAction(input: z.infer<typeof UpdateSchemaInput
 
   // Verify ownership
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId: ctx.tenantId },
+    where: { id: weddingId, resellerId: ctx.resellerId },
     select: { id: true, templateId: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
@@ -77,10 +77,10 @@ export async function updateSchemaAction(input: z.infer<typeof UpdateSchemaInput
 }
 
 export async function switchTemplateAction(weddingId: string, templateId: string): Promise<ActionResult> {
-  const ctx = await requireTenant()
+  const ctx = await requireReseller()
 
   const wedding = await (prisma as any).wedding.findFirst({
-    where: { id: weddingId, tenantId: ctx.tenantId },
+    where: { id: weddingId, resellerId: ctx.resellerId },
     select: { id: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }

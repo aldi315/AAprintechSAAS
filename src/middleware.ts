@@ -33,9 +33,9 @@ export async function middleware(request: NextRequest) {
     hostname === 'localhost:3000'
 
   if (!isRootDomain && !isLocalhost) {
-    // Subdomain request: tenant.aaprintech.com → /tenant/[subdomain]
+    // Subdomain request: reseller.aaprintech.com → /reseller/[subdomain]
     const subdomain = hostname.split('.')[0]
-    const rewriteUrl = new URL(`/tenant/${subdomain}${nextUrl.pathname}`, request.url)
+    const rewriteUrl = new URL(`/reseller/${subdomain}${nextUrl.pathname}`, request.url)
     return NextResponse.rewrite(rewriteUrl)
   }
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { requireTenant } from '@/lib/tenant-guard'
+import { requireReseller } from '@/lib/reseller-guard'
 import { getWeddingById } from '@/application/queries/wedding.queries'
 import { prisma } from '@/lib/prisma'
 import { SchemaEditor } from './SchemaEditor'
@@ -10,8 +10,8 @@ interface PageProps {
 
 export default async function EditorPage({ params }: PageProps) {
   const { id } = await params
-  const ctx = await requireTenant()
-  const wedding = await getWeddingById(ctx.tenantId, id)
+  const ctx = await requireReseller()
+  const wedding = await getWeddingById(ctx.resellerId, id)
   if (!wedding) notFound()
 
   // Load template schema

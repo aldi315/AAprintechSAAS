@@ -1,43 +1,37 @@
 'use client'
-import { Menu, LogOut } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import { signOut } from 'next-auth/react'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
+import { ThemeToggle } from '@/components/theme-toggle'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 
 interface AdminTopbarProps {
-  onMenuToggle: () => void
   userEmail?: string
   pageTitle?: string
 }
 
-export function AdminTopbar({ onMenuToggle, userEmail, pageTitle }: AdminTopbarProps) {
+export function AdminTopbar({ userEmail, pageTitle }: AdminTopbarProps) {
   return (
-    <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-20 px-4 lg:px-8 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onMenuToggle}
-          className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border bg-background px-4 z-20 sticky top-0">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
         {pageTitle && (
-          <h1 className="text-lg font-semibold text-slate-800">{pageTitle}</h1>
+          <h1 className="text-sm font-semibold text-foreground">{pageTitle}</h1>
         )}
       </div>
-
-      <div className="flex items-center gap-4">
-        <div className="hidden sm:block text-right">
-          <p className="text-sm font-medium text-slate-700">{userEmail}</p>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest">Super Admin</p>
-        </div>
-        
-        <div className="w-px h-8 bg-slate-200 mx-2 hidden sm:block" />
-        
-        <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
-          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          title="Sign out"
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
       </div>
     </header>
   )

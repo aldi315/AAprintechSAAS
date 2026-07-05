@@ -30,7 +30,7 @@ export interface SeoMetaDTO {
   ogImage: string | null
 }
 
-export interface TenantDTO {
+export interface ResellerDTO {
   slug: string
   businessName: string
 }
@@ -71,6 +71,6 @@ export interface InvitationRenderDTO {
   // SEO (for WhatsApp sharing)
   seoMeta: SeoMetaDTO
 
-  // Tenant context (public, non-sensitive)
-  tenant: TenantDTO
+  // Reseller context (public, non-sensitive)
+  reseller: ResellerDTO
 }

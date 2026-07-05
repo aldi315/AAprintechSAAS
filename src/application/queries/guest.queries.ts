@@ -1,5 +1,5 @@
 /**
- * APPLICATION QUERIES — Guest & RSVP Queries (tenant-scoped)
+ * APPLICATION QUERIES — Guest & RSVP Queries (reseller-scoped)
  */
 import { prisma } from '@/lib/prisma'
 
@@ -35,8 +35,8 @@ export interface RsvpStats {
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-export async function getGuestsByTenant(
-  tenantId: string,
+export async function getGuestsByReseller(
+  resellerId: string,
   page = 1,
   perPage = 20,
   search = '',
@@ -44,7 +44,7 @@ export async function getGuestsByTenant(
 ): Promise<{ items: GuestListItem[]; total: number; totalPages: number }> {
   const skip = (page - 1) * perPage
   const where: any = {
-    wedding: { tenantId },
+    wedding: { resellerId },
     ...(weddingId ? { weddingId } : {}),
     ...(search ? {
       OR: [
@@ -81,8 +81,8 @@ export async function getGuestsByTenant(
   }
 }
 
-export async function getRsvpsByTenant(
-  tenantId: string,
+export async function getRsvpsByReseller(
+  resellerId: string,
   filter: 'ALL' | 'ATTENDING' | 'NOT_ATTENDING' | 'MAYBE' = 'ALL',
   page = 1,
   perPage = 20,
@@ -90,7 +90,7 @@ export async function getRsvpsByTenant(
 ): Promise<{ items: RsvpListItem[]; total: number; totalPages: number; stats: RsvpStats }> {
   const skip = (page - 1) * perPage
   const where: any = {
-    wedding: { tenantId },
+    wedding: { resellerId },
     ...(filter !== 'ALL' ? { attendance: filter } : {}),
     ...(search ? { guest: { guestName: { contains: search, mode: 'insensitive' } } } : {}),
   }
@@ -108,7 +108,7 @@ export async function getRsvpsByTenant(
     }),
     (prisma as any).rSVP.count({ where }),
     (prisma as any).rSVP.findMany({
-      where: { wedding: { tenantId } },
+      where: { wedding: { resellerId } },
       select: { attendance: true, totalGuest: true },
     }),
   ])

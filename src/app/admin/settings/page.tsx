@@ -12,10 +12,10 @@ export default async function AdminSettingsPage() {
 
   const user = session.user
 
-  let adminTenant = null
-  if (user.tenantId) {
-    adminTenant = await (prisma as any).tenant.findUnique({
-      where: { id: user.tenantId },
+  let adminReseller = null
+  if (user.resellerId) {
+    adminReseller = await (prisma as any).reseller.findUnique({
+      where: { id: user.resellerId },
       select: {
         id: true,
         businessName: true,
@@ -32,5 +32,5 @@ export default async function AdminSettingsPage() {
     role: user.role ?? 'SUPER_ADMIN'
   }
 
-  return <AdminSettingsView adminTenant={adminTenant} adminUser={adminUser} />
+  return <AdminSettingsView adminReseller={adminReseller} adminUser={adminUser} />
 }
