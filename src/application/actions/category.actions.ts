@@ -1,9 +1,12 @@
 'use server'
 
+import { getVerifiedSuperAdminId, UNAUTHORIZED } from '@/lib/action-guards'
+
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 export async function createCategory(data: { name: string, slug: string }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const category = await prisma.templateCategory.create({
       data
@@ -18,6 +21,7 @@ export async function createCategory(data: { name: string, slug: string }) {
 }
 
 export async function updateCategory(id: string, data: { name: string, slug: string }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const category = await prisma.templateCategory.update({
       where: { id },
@@ -33,6 +37,7 @@ export async function updateCategory(id: string, data: { name: string, slug: str
 }
 
 export async function deleteCategory(id: string) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     await prisma.templateCategory.delete({
       where: { id }

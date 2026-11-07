@@ -1,5 +1,7 @@
 'use server'
 
+import { getVerifiedSuperAdminId, UNAUTHORIZED } from '@/lib/action-guards'
+
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
@@ -10,6 +12,7 @@ export async function createTemplate(data: {
   price: number
   active: boolean
 }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const template = await prisma.template.create({
       data: {
@@ -37,6 +40,7 @@ export async function updateTemplate(id: string, data: {
   price: number
   active: boolean
 }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const template = await prisma.template.update({
       where: { id },
@@ -58,6 +62,7 @@ export async function updateTemplate(id: string, data: {
 }
 
 export async function deleteTemplate(id: string) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     await prisma.template.delete({
       where: { id }
@@ -75,6 +80,7 @@ export async function deleteTemplate(id: string) {
 }
 
 export async function saveTemplateDesign(id: string, themeConfig: any) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const template = await prisma.template.update({
       where: { id },
