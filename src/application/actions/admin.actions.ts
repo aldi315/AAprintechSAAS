@@ -1,5 +1,7 @@
 'use server'
 
+import { getVerifiedSuperAdminId, UNAUTHORIZED } from '@/lib/action-guards'
+
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { supabaseServerClient, BUCKET_NAME } from '@/infrastructure/storage/supabase'
@@ -7,10 +9,17 @@ import { unlink } from 'fs/promises'
 import path from 'path'
 
 export async function deleteMediaGlobal(mediaId: string) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     if (mediaId.startsWith('local-')) {
-      const filename = mediaId.replace('local-', '')
-      const filepath = path.join(process.cwd(), 'public', 'uploads', filename)
+      // Cegah path traversal (mis. "local-../../package.json"): ambil basename saja
+      // lalu pastikan path hasil resolve tetap berada di dalam folder uploads.
+      const uploadDir = path.resolve(process.cwd(), 'public', 'uploads')
+      const filename = path.basename(mediaId.slice('local-'.length))
+      const filepath = path.resolve(uploadDir, filename)
+      if (!filename || filename.startsWith('.') || path.dirname(filepath) !== uploadDir) {
+        return { success: false, error: 'Nama file tidak valid.' }
+      }
       await unlink(filepath)
       revalidatePath('/admin/media')
       return { success: true }
@@ -44,6 +53,7 @@ export async function deleteMediaGlobal(mediaId: string) {
 import { v4 as uuidv4 } from 'uuid'
 
 export async function uploadGlobalMediaAction(formData: FormData) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const file = formData.get('file') as File | null
     const resellerId = formData.get('resellerId') as string | null

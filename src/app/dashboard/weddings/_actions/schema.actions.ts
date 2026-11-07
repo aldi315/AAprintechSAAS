@@ -1,12 +1,13 @@
 'use server'
 /**
  * Server Actions — Schema Editor
- * Update template sections + theme pada wedding's template themeConfig.
+ * Update sections + theme pada wedding.customConfig (snapshot per wedding).
  */
 import { z } from 'zod'
 import { requireReseller } from '@/lib/reseller-guard'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { getEffectiveConfig } from '@/application/queries/wedding-config.queries'
 
 const SectionItemSchema = z.object({
   id: z.string(),
@@ -46,35 +47,34 @@ export async function updateSchemaAction(input: z.infer<typeof UpdateSchemaInput
   // Verify ownership
   const wedding = await (prisma as any).wedding.findFirst({
     where: { id: weddingId, resellerId: ctx.resellerId },
-    select: { id: true, templateId: true },
+    select: { id: true, slug: true, templateId: true, customConfig: true },
   })
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
 
-  // Load current themeConfig
-  const template = await (prisma as any).template.findFirst({
-    where: { id: wedding.templateId },
-    select: { themeConfig: true },
-  })
+  // Konfigurasi efektif = snapshot milik wedding (customConfig) jika ada,
+  // selain itu master template. Urutan ini sama dengan InvitationRenderMapper.
+  const currentConfig = await getEffectiveConfig(wedding)
 
-  const currentConfig = (template?.themeConfig as any) ?? { version: 1, theme: {}, sections: [] }
-
-  // Merge updates
   const updatedConfig = {
+    ...currentConfig,
     version: 1,
     theme: theme ?? currentConfig.theme ?? {},
     sections: sections ?? currentConfig.sections ?? [],
   }
 
-  // Update template themeConfig
-  await (prisma as any).template.update({
-    where: { id: wedding.templateId },
-    data: { themeConfig: updatedConfig },
+  // PENTING: simpan ke wedding.customConfig milik reseller ini, BUKAN ke Template.
+  // Template adalah master global yang dipakai semua reseller — menulis ke sana
+  // membuat editan reseller A ikut mengubah undangan reseller lain.
+  await (prisma as any).wedding.update({
+    where: { id: wedding.id },
+    data: { customConfig: updatedConfig },
   })
 
   revalidatePath(`/dashboard/weddings/${weddingId}/editor`)
-  revalidatePath(`/${weddingId}`) // revalidate public page
+  revalidatePath(`/invitation/${wedding.slug}`) // revalidate public page
   return { success: true }
 }
+
 
 export async function switchTemplateAction(weddingId: string, templateId: string): Promise<ActionResult> {
   const ctx = await requireReseller()
@@ -86,14 +86,16 @@ export async function switchTemplateAction(weddingId: string, templateId: string
   if (!wedding) return { success: false, error: 'Wedding tidak ditemukan.' }
 
   const template = await (prisma as any).template.findFirst({
-    where: { id: templateId },
-    select: { id: true },
+    where: { id: templateId, active: true },
+    select: { id: true, themeConfig: true },
   })
   if (!template) return { success: false, error: 'Template tidak ditemukan.' }
 
+  // Reset snapshot desain ke template baru; kalau tidak, customConfig lama
+  // (milik template sebelumnya) tetap diprioritaskan dan pergantian tidak terlihat.
   await (prisma as any).wedding.update({
     where: { id: weddingId },
-    data: { templateId },
+    data: { templateId, customConfig: template.themeConfig ?? {} },
   })
 
   revalidatePath('/dashboard/weddings')

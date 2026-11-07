@@ -1,5 +1,7 @@
 'use server'
 
+import { getVerifiedSuperAdminId, UNAUTHORIZED } from '@/lib/action-guards'
+
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
@@ -11,6 +13,7 @@ export async function createWedding(data: {
   groomName: string
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const template = await prisma.template.findUnique({ where: { id: data.templateId } })
     const customConfig = template?.themeConfig ?? undefined
@@ -43,6 +46,7 @@ export async function updateWedding(id: string, data: {
   groomName: string
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 }) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const existing = await prisma.wedding.findUnique({ where: { id } })
     let customConfigToSave = undefined
@@ -76,6 +80,7 @@ export async function updateWedding(id: string, data: {
 }
 
 export async function deleteWedding(id: string) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     await prisma.wedding.delete({
       where: { id }
@@ -90,6 +95,7 @@ export async function deleteWedding(id: string) {
 }
 
 export async function saveWeddingDesign(id: string, customConfig: any) {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const wedding = await prisma.wedding.update({
       where: { id },
@@ -109,6 +115,7 @@ export async function saveWeddingDesign(id: string, customConfig: any) {
 }
 
 export async function updateWeddingStatus(id: string, status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED') {
+  if (!(await getVerifiedSuperAdminId())) return UNAUTHORIZED
   try {
     const wedding = await prisma.wedding.update({
       where: { id },
